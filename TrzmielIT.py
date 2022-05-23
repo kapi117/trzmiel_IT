@@ -33,6 +33,20 @@ def start_window():
                 pygame.quit()
                 sys.exit()
 
+        mouse = pygame.mouse.get_pos()
+        button_1_player_bounds = (start_button_1_player_position[0],
+                                  start_button_1_player_position[0] + game_images['start_button_1_player'].get_width(),
+                                  start_button_1_player_position[1],
+                                  start_button_1_player_position[1] + game_images['start_button_1_player'].get_height())
+        button_2_player_bounds = (start_button_2_player_position[0],
+                                  start_button_2_player_position[0] + game_images['start_button_2_player'].get_width(),
+                                  start_button_2_player_position[1],
+                                  start_button_2_player_position[1] + game_images['start_button_2_player'].get_height())
+        button_settings_bounds = (start_button_settings_position[0],
+                                  start_button_settings_position[0] + game_images['start_button_settings'].get_width(),
+                                  start_button_settings_position[1],
+                                  start_button_settings_position[1] + game_images['start_button_settings'].get_height())
+
 
 if __name__ == "__main__":
     pygame.init()
