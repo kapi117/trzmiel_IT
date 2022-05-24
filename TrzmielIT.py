@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import pygame
 from pygame.locals import *
 import sys
@@ -18,6 +20,10 @@ start_button_2_player_position = (400, 450)
 start_button_settings_position = (50, 600)
 
 game_images = {}
+
+
+def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, int]) -> bool:
+    return bounds[0] <= mouse_pos[0] <= bounds[1] and bounds[2] <= mouse_pos[1] <= bounds[3]
 
 
 def start_window():
@@ -53,9 +59,9 @@ if __name__ == "__main__":
     time_clock = pygame.time.Clock()
     pygame.display.set_caption('TrzmielIT')
     game_images['start_background'] = pygame.image.load(start_background_image).convert()
-    game_images['start_button_1_player'] = pygame.image.load(start_button_1_player_image).convert()
-    game_images['start_button_2_player'] = pygame.image.load(start_button_2_player_image).convert()
-    game_images['start_title'] = pygame.image.load(start_title_image).convert()
-    game_images['start_button_settings'] = pygame.image.load(start_button_settings_image).convert()
+    game_images['start_button_1_player'] = pygame.image.load(start_button_1_player_image).convert_alpha()
+    game_images['start_button_2_player'] = pygame.image.load(start_button_2_player_image).convert_alpha()
+    game_images['start_title'] = pygame.image.load(start_title_image).convert_alpha()
+    game_images['start_button_settings'] = pygame.image.load(start_button_settings_image).convert_alpha()
 
     start_window()
