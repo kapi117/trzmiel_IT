@@ -14,11 +14,11 @@ start_button_1_player_image = 'images/start/button_1_player.png'
 start_button_2_player_image = 'images/start/button_2_player.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
 
-start_title_position = (100, 100)
+start_title_position = (50, 50)
 start_button_1_player_position = (400, 400)
 start_button_2_player_position = (400, 450)
 start_button_settings_position = (40, 560)
-start_button_settings_size = (30, 30)
+start_button_settings_size = (50, 50)
 
 game_images = {}
 
@@ -58,10 +58,10 @@ def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, in
 
 
 def start_window():
-    #display_screen_window.blit(game_images['start_title'], start_title_position)
-    #display_screen_window.blit(game_images['start_button_1_player'], start_button_1_player_position)
-    #display_screen_window.blit(game_images['start_button_2_player'], start_button_2_player_position)
-    #display_screen_window.blit(game_images['start_button_settings'], start_button_2_player_position)
+    display_screen_window.blit(game_images['start_title'], start_title_position)
+    # display_screen_window.blit(game_images['start_button_1_player'], start_button_1_player_position)
+    # display_screen_window.blit(game_images['start_button_2_player'], start_button_2_player_position)
+    # display_screen_window.blit(game_images['start_button_settings'], start_button_2_player_position)
     button_1_player = ButtonSprite(game_images['start_button_1_player'], start_button_1_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
     group = pygame.sprite.Group(button_1_player, button_settings)
@@ -73,9 +73,10 @@ def start_window():
                 sys.exit()
         group.update()
         display_screen_window.blit(game_images['start_background'], (0, 0))
+        display_screen_window.blit(game_images['start_title'], start_title_position)
         group.draw(display_screen_window)
         pygame.display.flip()
-
+        time_clock.tick(FPS)
         '''
         mouse = pygame.mouse.get_pos()
         button_1_player_bounds = (start_button_1_player_position[0],
@@ -100,7 +101,8 @@ if __name__ == "__main__":
     game_images['start_background'] = pygame.image.load(start_background_image).convert()
     game_images['start_button_1_player'] = pygame.image.load(start_button_1_player_image).convert_alpha()
     # game_images['start_button_2_player'] = pygame.image.load(start_button_2_player_image).convert_alpha()
-    # game_images['start_title'] = pygame.image.load(start_title_image).convert_alpha()
-    game_images['start_button_settings'] = pygame.transform.scale(pygame.image.load(start_button_settings_image).convert_alpha(), start_button_settings_size)
+    game_images['start_title'] = pygame.image.load(start_title_image).convert_alpha()
+    game_images['start_button_settings'] = pygame.transform.scale(
+        pygame.image.load(start_button_settings_image).convert_alpha(), start_button_settings_size)
 
     start_window()
