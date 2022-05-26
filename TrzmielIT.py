@@ -58,15 +58,11 @@ def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, in
 
 
 def start_window():
-    display_screen_window.blit(game_images['start_title'], start_title_position)
-    # display_screen_window.blit(game_images['start_button_1_player'], start_button_1_player_position)
-    # display_screen_window.blit(game_images['start_button_2_player'], start_button_2_player_position)
-    # display_screen_window.blit(game_images['start_button_settings'], start_button_2_player_position)
+
     button_1_player = ButtonSprite(game_images['start_button_1_player'], start_button_1_player_position)
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
     group = pygame.sprite.Group(button_1_player, button_settings, button_2_player)
-    pygame.display.update()
     while True:
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
@@ -78,21 +74,6 @@ def start_window():
         group.draw(display_screen_window)
         pygame.display.flip()
         time_clock.tick(FPS)
-        '''
-        mouse = pygame.mouse.get_pos()
-        button_1_player_bounds = (start_button_1_player_position[0],
-                                  start_button_1_player_position[0] + game_images['start_button_1_player'].get_width(),
-                                  start_button_1_player_position[1],
-                                  start_button_1_player_position[1] + game_images['start_button_1_player'].get_height())
-        button_2_player_bounds = (start_button_2_player_position[0],
-                                  start_button_2_player_position[0] + game_images['start_button_2_player'].get_width(),
-                                  start_button_2_player_position[1],
-                                  start_button_2_player_position[1] + game_images['start_button_2_player'].get_height())
-        button_settings_bounds = (start_button_settings_position[0],
-                                  start_button_settings_position[0] + game_images['start_button_settings'].get_width(),
-                                  start_button_settings_position[1],
-                                  start_button_settings_position[1] + game_images['start_button_settings'].get_height())
-                                  '''
 
 
 if __name__ == "__main__":
