@@ -8,6 +8,7 @@ src_height = 600
 display_screen_window = pygame.display.set_mode((src_width, src_height))
 start_background_image = 'images/start/background.png'
 settings_button_image ='images/start/przycisk_ustawien.png'
+settings_background_image ='images/start/nazwa_pliku_tla_ustawien.png'
 game_images = {}
 
 
@@ -15,20 +16,32 @@ def start_window():
     display_screen_window.blit(game_images['start_background'], (0, 0))
     display_screen_window.blit(game_images['settings_button'], (736, 564))
     pygame.display.update()
+    ust = 0
     while True:
         for event in pygame.event.get():
-            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE and ust == 0):
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.MOUSEBUTTONUP and pygame.mouse.get_pos()[0] > 736 and pygame.mouse.get_pos()[1] > 564:
+            if event.type == pygame.MOUSEBUTTONUP and pygame.mouse.get_pos()[0] > 736 and pygame.mouse.get_pos()[1] > 564 and ust == 0:
                 #print("dziala")
                 #print(pygame.mouse.get_pos())
-                pass
+                ust=ust+1
+                display_screen_window.blit(game_images['settings_background'], (200, 0))
+                pygame.display.update()
+                #print(ust)
+            #if event.type == pygame.MOUSEBUTTONUP and pygame.mouse.get_pos()[0] < 736 and pygame.mouse.get_pos()[1] < 564 and ust == 1:
+            if event.type == KEYDOWN and event.key == K_ESCAPE and ust == 1:
+                ust = ust - 1
+                display_screen_window.blit(game_images['start_background'], (0, 0))
+                display_screen_window.blit(game_images['settings_button'], (736, 564))
+                pygame.display.update()
+
 if __name__ == "__main__":
     pygame.init()
     time_clock = pygame.time.Clock()
     pygame.display.set_caption('TrzmielIT')
     game_images['start_background'] = pygame.image.load(start_background_image).convert()
     game_images['settings_button'] = pygame.image.load(settings_button_image).convert()
+    game_images['settings_background'] = pygame.image.load(settings_background_image).convert()
     while True:
         start_window()
