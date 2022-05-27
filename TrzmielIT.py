@@ -3,23 +3,77 @@ from typing import Tuple
 import pygame
 from pygame.locals import *
 import sys
+"""
+    TrzmielIT
+    =========
+    Główny plik aplikacji TrzmielIT, służący do obsługi gry oraz wyświetlania okna starowego
+"""
 
+"""
+    Stałe używane
+    -------------
+    FPS : int
+        Ilośc klatek na sekundę
+    src_width : int
+        Szerokość ekranu startowego
+    src_height : int
+        Wysokość ekranu startowego
+    display_screen_window : pygame.Surface
+        Okno startowe z biblioteki pygame   
+"""
 FPS = 32
 src_width = 800
 src_height = 600
 display_screen_window = pygame.display.set_mode((src_width, src_height))
+
+"""
+    Adresy obrazków
+    ---------------
+    start_background_image : string
+        Adres obrazku tła
+    start_title_image : string
+        Adres obrazku tytułu
+    start_button_1_player_image : string
+        Adres obrazku przycisku gry jednoosobowej
+    start_button_2_player_image : string
+        Adres obrazku przycisku gry dwuosobowej
+    start_button_settings_image : string
+        Adres obrazku przycisku ustawień
+"""
 start_background_image = 'images/start/background.png'
 start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
 
+"""
+    Pozycje obrazków
+    ----------------
+    start_title_position : Tuple [int, int]
+        Pozycja (lewy górny róg) napisu tytułowego
+    start_button_1_player_position : Tuple [int, int]
+        Pozycja (środek) przycisku gry jednoosobowej
+    start_button_2_player_position : Tuple [int, int]
+        Pozycja (środek) przycisku gry dwuosobowej
+    start_button_settings_position : Tuple [int, int]
+        Pozycja (środek) przycisku ustawień
+"""
 start_title_position = (50, 50)
 start_button_1_player_position = (400, 400)
 start_button_2_player_position = (400, 500)
 start_button_settings_position = (40, 560)
+
+"""
+    Rozmiary obrazków
+    -----------------
+    start_button_settings_size : Tuple [int, int]
+        Rozmiar przycisku ustawień
+"""
 start_button_settings_size = (50, 50)
 
+""" game_images : Dict[string, pygame.image]
+        Słownik przechowujący obrazki
+"""
 game_images = {}
 
 
