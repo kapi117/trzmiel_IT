@@ -3,6 +3,7 @@ from typing import Tuple
 import pygame
 from pygame.locals import *
 import sys
+
 """
     TrzmielIT
     =========
@@ -71,48 +72,106 @@ start_button_settings_position = (40, 560)
 """
 start_button_settings_size = (50, 50)
 
-""" game_images : Dict[string, pygame.image]
+""" game_images : Dict[string, image.pyi]
         Słownik przechowujący obrazki
 """
 game_images = {}
 
 
 class ButtonSprite(pygame.sprite.Sprite):
+    """
+        :class ButtonSprite: Klasa odpowiedzialna za tworzenie przycisków i ich odpowiednie wyświetlanie.
+
+        :ivar self.original_image: Oryginalny obrazek przekazany przy wywołaniu
+        :type self.original_image: image.pyi
+
+        :ivar self.image: Aktualny obrazek
+        :type self.image: image.pyi
+
+        :ivar self.center: Współrzędne środka
+        :type self.center: Tuple[int, int]
+
+        :ivar self.rect: Prostokąt do wyświetlania przycisku
+        :type self.rect: pygame.Surface
+
+        :ivar self.pos: Pozycja krawędzi elementów w formacie (x_min, x_max, y_min, y_max)
+                       x_min         x_max
+                       \\//          \\//
+               y_min -> |-------------|
+                        |             |
+                        |             |
+               y_max -> |-------------|
+        :type self.pos: Tuple[int, int, int, int]
+
+    """
+
     def __init__(self, image, center):
+        """
+        :function: __init__(self, image, center)
+        :param image: Obrazek do wyświetlania jako przycisk
+        :type image: image.pyi
+        :param center: Współrzędne środka
+        :type center: Tuple[int, int]
+        """
         super().__init__()
         self.original_image = image
         self.image = image
         self.center = center
         self.rect = self.image.get_rect(center=center)
+        """ Obliczenie krawędzie na podstawie środka i rozmiarów obrazka """
         self.pos = (self.center[0] - self.image.get_width() / 2,
                     self.center[0] + self.image.get_width() / 2,
                     self.center[1] - self.image.get_height() / 2,
                     self.center[1] + self.image.get_height() / 2)
 
     def enlarge(self, scale_factor=1.1):
+        """
+        :function enlarge: Zmienia wymiary obecnego przycisku mnożąc je razy scale_factor
+        :param scale_factor: Współczynnik zmiany rozmiaru
+        :type scale_factor: float
+        """
         orig_x, orig_y = self.original_image.get_size()
+        """ Wymnażanie oryginalnych rozmiarów razy współczynnik """
         size_x = orig_x * scale_factor
         size_y = orig_y * scale_factor
+        """ zmiana rozmiarów """
         self.image = pygame.transform.scale(self.original_image, (size_x, size_y))
+        """ odnowienie prostokąta """
         self.rect = self.image.get_rect(center=self.rect.center)
 
     def reset_image(self):
+        """
+        :function reset_image: Funkcja przywracająca self.original_image jako self.image
+        """
         self.image = pygame.transform.scale(self.original_image, self.original_image.get_size())
         self.rect = self.image.get_rect(center=self.rect.center)
 
     def update(self):
+        """
+        :function update: Funkcja dziedziczona po pygame.sprite.Sprite, wywoływana co tyknięcie zegara
+        """
         if check_if_clicked(pygame.mouse.get_pos(), self.pos):
+            """ Jeśli najechany to powiększ """
             self.enlarge()
         else:
+            """ W przeciwnym razie oryginalny obrazek """
             self.reset_image()
 
 
 def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, int]) -> bool:
+    """
+    :function check_if_clicked: Funkcja sprawdzająca czy współrzędne myszki znajdują się w ramach podanych krawędzi
+    :param mouse_pos: Współrzędne myszki
+    :type mouse_pos: Tuple[int, int]
+    :param bounds: Krawędzie obiektu
+    :type bounds: Tuple[int, int, int, int]
+    :return: True jeśli znajduje się, False w przeciwnym razie
+    :rtype: bool
+    """
     return bounds[0] <= mouse_pos[0] <= bounds[1] and bounds[2] <= mouse_pos[1] <= bounds[3]
 
 
 def start_window():
-
     button_1_player = ButtonSprite(game_images['start_button_1_player'], start_button_1_player_position)
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
