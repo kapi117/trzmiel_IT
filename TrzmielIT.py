@@ -172,32 +172,51 @@ def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, in
 
 
 def start_window():
+    """
+    :function start_window: Funkcja odpowiedzialna za działanie okna startowego
+
+    button_* : ButtonSprite
+        Zmienne przechowujące przyciski jako obiekty ButtonSprite (domyślnie powiększające się przy najechaniu)
+
+    group : pygame.sprite.Group
+        Grupa przycisków w celu łatwego wywołanie update() na wszystkich
+
+    """
     button_1_player = ButtonSprite(game_images['start_button_1_player'], start_button_1_player_position)
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
-    group = pygame.sprite.Group(button_1_player, button_settings, button_2_player)
+    buttons = pygame.sprite.Group(button_1_player, button_settings, button_2_player)
     while True:
+        """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
-        group.update()
+        """ Umiejscowienie tła oraz tytułu """
         display_screen_window.blit(game_images['start_background'], (0, 0))
         display_screen_window.blit(game_images['start_title'], start_title_position)
-        group.draw(display_screen_window)
+        """ update() przyciski oraz wyrysowanie ich na ekran """
+        buttons.update()
+        buttons.draw(display_screen_window)
+        """ Uaktualnienie widoku """
         pygame.display.flip()
         time_clock.tick(FPS)
 
 
 if __name__ == "__main__":
+    """ Inicjalizacja gry """
     pygame.init()
     time_clock = pygame.time.Clock()
+    """ Napis na okienku """
     pygame.display.set_caption('TrzmielIT')
+    """ Przypisanie obrazków do game_images na podstawie ich ścieżek """
     game_images['start_background'] = pygame.image.load(start_background_image).convert()
     game_images['start_button_1_player'] = pygame.image.load(start_button_1_player_image).convert_alpha()
     game_images['start_button_2_player'] = pygame.image.load(start_button_2_player_image).convert_alpha()
     game_images['start_title'] = pygame.image.load(start_title_image).convert_alpha()
+    """ Dodatkowo przeskalowanie ikony ustawień """
     game_images['start_button_settings'] = pygame.transform.scale(
         pygame.image.load(start_button_settings_image).convert_alpha(), start_button_settings_size)
 
+    """ Okno startowe """
     start_window()
