@@ -21,11 +21,15 @@ import sys
         Wysokość ekranu startowego
     display_screen_window : pygame.Surface
         Okno startowe z biblioteki pygame   
+    music_on : bool
+        True jeśli ma lecieć muzyka, w innym przypadku False
 """
 FPS = 32
 src_width = 800
 src_height = 600
 display_screen_window = pygame.display.set_mode((src_width, src_height))
+music_on = True
+sounds_on = True
 
 """
     Adresy obrazków
@@ -156,6 +160,22 @@ class ButtonSprite(pygame.sprite.Sprite):
         else:
             """ W przeciwnym razie oryginalny obrazek """
             self.reset_image()
+
+
+def toggle_music():
+    """
+    :function toggle_music: Funkcja zmieniająca stan zmiennej music_on na przeciwny
+    """
+    global music_on
+    music_on = not music_on
+
+
+def toggle_sounds():
+    """
+    :function toggle_sounds: Funkcja zmieniająca stan zmiennej sounds_on na przeciwny
+    """
+    global sounds_on
+    sounds_on = not sounds_on
 
 
 def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, int]) -> bool:
