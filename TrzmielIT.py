@@ -13,12 +13,13 @@ start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
-settings_background_image ='images/start/nazwa_pliku_tla_ustawien.png' #podstawic nazwe tla ustawien
+settings_background_image ='images/settings/settings.background.png' #podstawic nazwe tla ustawien
 
 start_title_position = (50, 50)
 start_button_1_player_position = (400, 400)
 start_button_2_player_position = (400, 500)
 start_button_settings_position = (40, 560)
+settings_window_position = (95, 100)
 start_button_settings_size = (50, 50)
 
 game_images = {}
@@ -86,7 +87,7 @@ def start_window():
 
 
 def start_settings():
-    display_screen_window.blit(game_images['settings_background'], (200, 0))
+    display_screen_window.blit(game_images['settings_background'], settings_window_position)
     pygame.display.update()
 
 if __name__ == "__main__":
