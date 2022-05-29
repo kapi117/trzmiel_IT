@@ -26,7 +26,7 @@ FPS = 32
 src_width = 800
 src_height = 600
 display_screen_window = pygame.display.set_mode((src_width, src_height))
-
+dt = 0.0
 """
     Adresy obrazków
     ---------------
@@ -177,14 +177,23 @@ def start_window():
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
     buttons = pygame.sprite.Group(button_1_player, button_settings, button_2_player)
+    dt = 0.0
+    main_screen_motion = 1
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
-        """ Umiejscowienie tła oraz tytułu """
-        display_screen_window.blit(game_images['start_background'], (0, 0))
+        """ Animacja tła oraz umiejscowienie tytułu """
+
+        dt += time_clock.tick(FPS)
+        while dt >= 1:
+            dt -= 1
+            main_screen_motion += 0.1
+            if main_screen_motion >= 800.0:
+                main_screen_motion = 0
+            display_screen_window.blit(game_images['start_background'], (-main_screen_motion, 0))
         display_screen_window.blit(game_images['start_title'], start_title_position)
         """ update() przyciski oraz wyrysowanie ich na ekran """
         buttons.update()
