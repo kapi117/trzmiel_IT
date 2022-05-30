@@ -26,7 +26,7 @@ FPS = 32
 src_width = 800
 src_height = 600
 display_screen_window = pygame.display.set_mode((src_width, src_height))
-dt = 0.0
+
 """
     Adresy obrazków
     ---------------
@@ -81,14 +81,20 @@ game_images = {}
 class ButtonSprite(pygame.sprite.Sprite):
     """
         :class ButtonSprite: Klasa odpowiedzialna za tworzenie przycisków i ich odpowiednie wyświetlanie.
+
         :ivar self.original_image: Oryginalny obrazek przekazany przy wywołaniu
         :type self.original_image: image.pyi
+
         :ivar self.image: Aktualny obrazek
         :type self.image: image.pyi
+
         :ivar self.center: Współrzędne środka
         :type self.center: Tuple[int, int]
+
         :ivar self.rect: Prostokąt do wyświetlania przycisku
         :type self.rect: pygame.Surface
+
+
         :ivar self.pos: Pozycja krawędzi elementów w formacie (x_min, x_max, y_min, y_max)
                        x_min         x_max
                        \\//          \\//
@@ -97,6 +103,7 @@ class ButtonSprite(pygame.sprite.Sprite):
                         |             |
                y_max -> |-------------|
         :type self.pos: Tuple[int, int, int, int]
+
     """
 
     def __init__(self, image, center):
@@ -168,16 +175,21 @@ def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, in
 def start_window():
     """
     :function start_window: Funkcja odpowiedzialna za działanie okna startowego
+
     button_* : ButtonSprite
         Zmienne przechowujące przyciski jako obiekty ButtonSprite (domyślnie powiększające się przy najechaniu)
+
     group : pygame.sprite.Group
         Grupa przycisków w celu łatwego wywołanie update() na wszystkich
+
+
     """
     button_1_player = ButtonSprite(game_images['start_button_1_player'], start_button_1_player_position)
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
     buttons = pygame.sprite.Group(button_1_player, button_settings, button_2_player)
-    dt = 0.0
+    """ akumulator wykorzystywany w animacji tła, oraz zmienna wyrażająca szybkość poruszania się tła"""
+    acc = 0.0
     main_screen_motion = 1
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
@@ -185,11 +197,12 @@ def start_window():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
+
         """ Animacja tła oraz umiejscowienie tytułu """
 
-        dt += time_clock.tick(FPS)
-        while dt >= 1:
-            dt -= 1
+        acc += time_clock.tick(FPS)
+        while acc >= 1:
+            acc -= 1
             main_screen_motion += 0.1
             if main_screen_motion >= 800.0:
                 main_screen_motion = 0
