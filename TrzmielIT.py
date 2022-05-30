@@ -202,6 +202,10 @@ def toggle_sounds():
     """
     global sounds_on
     sounds_on = not sounds_on
+    if sounds_on:
+        pygame.mixer.Channel(start_click_sound_channel).set_volume(1.0)
+    else:
+        pygame.mixer.Channel(start_click_sound_channel).set_volume(0.0)
 
 
 def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, int]) -> bool:
