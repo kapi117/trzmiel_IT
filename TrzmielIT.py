@@ -32,7 +32,7 @@ music_on = True
 sounds_on = True
 
 """
-    Adresy obrazków
+    Adresy obrazków i dźwięków
     ---------------
     start_background_image : string
         Adres obrazku tła
@@ -44,12 +44,19 @@ sounds_on = True
         Adres obrazku przycisku gry dwuosobowej
     start_button_settings_image : string
         Adres obrazku przycisku ustawień
+    start_music : string
+        Adres dźwięku melodii startowej
+    start_click_sound : string
+        Adres dźwięku kliknięcia przycisku
 """
 start_background_image = 'images/start/background.png'
 start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
+start_music = 'sounds/music.wav'
+start_click_sound = 'sounds/click.wav'
+on_hover = 'sounds/on_hover.wav'
 
 """
     Pozycje obrazków
@@ -76,10 +83,19 @@ start_button_settings_position = (40, 560)
 """
 start_button_settings_size = (50, 50)
 
+"""
+    Nr kanałów dla poszczególnych dźwięków
+"""
+start_music_channel = 0
+start_click_sound_channel = 1
+
 """ game_images : Dict[string, image.pyi]
         Słownik przechowujący obrazki
+    game_sounds : Dict[string, image.pyi]
+        Słownik przechowujący dźwięki
 """
 game_images = {}
+game_sounds = {}
 
 
 class ButtonSprite(pygame.sprite.Sprite):
@@ -127,6 +143,7 @@ class ButtonSprite(pygame.sprite.Sprite):
                     self.center[0] + self.image.get_width() / 2,
                     self.center[1] - self.image.get_height() / 2,
                     self.center[1] + self.image.get_height() / 2)
+        self.played = False
 
     def enlarge(self, scale_factor=1.1):
         """
@@ -155,11 +172,15 @@ class ButtonSprite(pygame.sprite.Sprite):
         :function update: Funkcja dziedziczona po pygame.sprite.Sprite, wywoływana co tyknięcie zegara
         """
         if check_if_clicked(pygame.mouse.get_pos(), self.pos):
-            """ Jeśli najechany to powiększ """
+            """ Jeśli najechany to powiększ i wydaj dźwięk (jeśli nie został zagrany wcześniej) """
+            if not self.played:
+                pygame.mixer.Channel(start_click_sound_channel).play(game_sounds["on_hover"])
+                self.played = True
             self.enlarge()
         else:
-            """ W przeciwnym razie oryginalny obrazek """
+            """ W przeciwnym razie oryginalny obrazek i nie zagrano jeszcze dźwięku """
             self.reset_image()
+            self.played = False
 
 
 def toggle_music():
@@ -168,6 +189,11 @@ def toggle_music():
     """
     global music_on
     music_on = not music_on
+    if music_on:
+        """ Jeśli zmieniona muzykę na on to zacznij grać muzykę"""
+        pygame.mixer.Channel(start_music_channel).play(game_sounds['start_music'], -1)
+    else:
+        pygame.mixer.Channel(start_music_channel).stop()
 
 
 def toggle_sounds():
@@ -206,6 +232,8 @@ def start_window():
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
     buttons = pygame.sprite.Group(button_1_player, button_settings, button_2_player)
+    """ Rozpoczęcie grania muzyczki w nieskończonej pętli """
+    pygame.mixer.Channel(start_music_channel).play(game_sounds["start_music"], -1)
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
         for event in pygame.event.get():
@@ -224,7 +252,9 @@ def start_window():
 
 
 if __name__ == "__main__":
-    """ Inicjalizacja gry """
+    """ Inicjalizacja gry oraz dźwięków"""
+    pygame.mixer.pre_init()
+    pygame.mixer.init()
     pygame.init()
     time_clock = pygame.time.Clock()
     """ Napis na okienku """
@@ -237,6 +267,11 @@ if __name__ == "__main__":
     """ Dodatkowo przeskalowanie ikony ustawień """
     game_images['start_button_settings'] = pygame.transform.scale(
         pygame.image.load(start_button_settings_image).convert_alpha(), start_button_settings_size)
+
+    """ Przypisanie dźwięków do game_sounds na podstawie ich ścieżek """
+    game_sounds["start_music"] = pygame.mixer.Sound(start_music)
+    game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
+    game_sounds["on_hover"] = pygame.mixer.Sound(on_hover)
 
     """ Okno startowe """
     start_window()
