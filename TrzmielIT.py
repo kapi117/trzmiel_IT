@@ -46,7 +46,12 @@ start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
-
+settings_background_image = 'images/settings/settings.background.png'
+settings_title_image = 'images/settings/settings.title.png'
+settings_button_pressed_image = 'images/settings/Nacisniety przycisk.png'
+settings_button_not_pressed_image = 'images/settings/przycisk.png'
+settings_speaker_image = 'images/settings/speaker.png'
+settings_note_image = 'images/settings/note.png'
 """
     Pozycje obrazków
     ----------------
@@ -63,7 +68,12 @@ start_title_position = (50, 50)
 start_button_1_player_position = (400, 400)
 start_button_2_player_position = (400, 500)
 start_button_settings_position = (40, 560)
-
+settings_window_position = (95, 100)
+settings_title_position = (247, 120)
+settings_button_position_1 = (450, 200)
+settings_button_position_2 = (450, 350)
+settings_speaker_position = (250, 200)
+settings_note_position = (250, 350)
 """
     Rozmiary obrazków
     -----------------
@@ -71,6 +81,11 @@ start_button_settings_position = (40, 560)
         Rozmiar przycisku ustawień
 """
 start_button_settings_size = (50, 50)
+settings_title_size = (305, 45)
+settings_button_pressed_size = (100, 100)
+settings_button_not_pressed_size = (100, 100)
+settings_speaker_size = (100, 100)
+settings_note_size = (100, 100)
 
 """ game_images : Dict[string, image.pyi]
         Słownik przechowujący obrazki
@@ -81,20 +96,14 @@ game_images = {}
 class ButtonSprite(pygame.sprite.Sprite):
     """
         :class ButtonSprite: Klasa odpowiedzialna za tworzenie przycisków i ich odpowiednie wyświetlanie.
-
         :ivar self.original_image: Oryginalny obrazek przekazany przy wywołaniu
         :type self.original_image: image.pyi
-
         :ivar self.image: Aktualny obrazek
         :type self.image: image.pyi
-
         :ivar self.center: Współrzędne środka
         :type self.center: Tuple[int, int]
-
         :ivar self.rect: Prostokąt do wyświetlania przycisku
         :type self.rect: pygame.Surface
-
-
         :ivar self.pos: Pozycja krawędzi elementów w formacie (x_min, x_max, y_min, y_max)
                        x_min         x_max
                        \\//          \\//
@@ -103,7 +112,6 @@ class ButtonSprite(pygame.sprite.Sprite):
                         |             |
                y_max -> |-------------|
         :type self.pos: Tuple[int, int, int, int]
-
     """
 
     def __init__(self, image, center):
@@ -171,18 +179,23 @@ def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, in
     """
     return bounds[0] <= mouse_pos[0] <= bounds[1] and bounds[2] <= mouse_pos[1] <= bounds[3]
 
+def settings_window():
+    display_screen_window.blit(game_images['settings_background'], settings_window_position)
+    display_screen_window.blit(game_images['settings_title'], settings_title_position)
+    display_screen_window.blit(game_images['settings_speaker'], settings_speaker_position)
+    display_screen_window.blit(game_images['settings_note'], settings_note_position)
+    #display_screen_window.blit(game_images['settings_button_pressed'], settings_button_position_1)
+    display_screen_window.blit(game_images['settings_button_not_pressed'], settings_button_position_1)
+    display_screen_window.blit(game_images['settings_button_not_pressed'], settings_button_position_2)
+
 
 def start_window():
     """
     :function start_window: Funkcja odpowiedzialna za działanie okna startowego
-
     button_* : ButtonSprite
         Zmienne przechowujące przyciski jako obiekty ButtonSprite (domyślnie powiększające się przy najechaniu)
-
     group : pygame.sprite.Group
         Grupa przycisków w celu łatwego wywołanie update() na wszystkich
-
-
     """
     button_1_player = ButtonSprite(game_images['start_button_1_player'], start_button_1_player_position)
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
@@ -197,9 +210,7 @@ def start_window():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
-
-        """ Animacja tła oraz umiejscowienie tytułu """
-
+                """ Animacja tła oraz umiejscowienie tytułu """
         acc += time_clock.tick(FPS)
         while acc >= 1:
             acc -= 1
@@ -216,6 +227,7 @@ def start_window():
         time_clock.tick(FPS)
 
 
+
 if __name__ == "__main__":
     """ Inicjalizacja gry """
     pygame.init()
@@ -227,9 +239,19 @@ if __name__ == "__main__":
     game_images['start_button_1_player'] = pygame.image.load(start_button_1_player_image).convert_alpha()
     game_images['start_button_2_player'] = pygame.image.load(start_button_2_player_image).convert_alpha()
     game_images['start_title'] = pygame.image.load(start_title_image).convert_alpha()
-    """ Dodatkowo przeskalowanie ikony ustawień """
+    game_images['settings_background'] = pygame.image.load(settings_background_image).convert()
+    """ Dodatkowo przeskalowanie ikon w ustawieniach """
     game_images['start_button_settings'] = pygame.transform.scale(
         pygame.image.load(start_button_settings_image).convert_alpha(), start_button_settings_size)
+    game_images['settings_title'] = pygame.transform.scale(
+        pygame.image.load(settings_title_image).convert_alpha(), settings_title_size)
+    game_images['settings_button_pressed'] = pygame.transform.scale(
+        pygame.image.load(settings_button_pressed_image).convert_alpha(), settings_button_pressed_size)
+    game_images['settings_button_not_pressed'] = pygame.transform.scale(
+        pygame.image.load(settings_button_not_pressed_image).convert_alpha(), settings_button_not_pressed_size)
+    game_images['settings_speaker'] = pygame.transform.scale(
+        pygame.image.load(settings_speaker_image).convert_alpha(), settings_speaker_size)
+    game_images['settings_note'] = pygame.transform.scale(
+        pygame.image.load(settings_note_image).convert_alpha(), settings_note_size)
 
-    """ Okno startowe """
     start_window()
