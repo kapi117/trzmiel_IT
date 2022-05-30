@@ -70,10 +70,10 @@ start_button_2_player_position = (400, 500)
 start_button_settings_position = (40, 560)
 settings_window_position = (95, 100)
 settings_title_position = (247, 120)
-settings_button_position_1 = (250, 200)
-settings_button_position_2 = (250, 350)
-settings_speaker_position = (450, 200)
-settings_note_position = (450, 350)
+settings_button_position_1 = (450, 200)
+settings_button_position_2 = (450, 350)
+settings_speaker_position = (250, 200)
+settings_note_position = (250, 350)
 """
     Rozmiary obrazków
     -----------------
@@ -213,6 +213,7 @@ def start_window():
         """ update() przyciski oraz wyrysowanie ich na ekran """
         buttons.update()
         buttons.draw(display_screen_window)
+        settings_window()
         """ Uaktualnienie widoku """
         pygame.display.flip()
         time_clock.tick(FPS)
