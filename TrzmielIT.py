@@ -213,7 +213,6 @@ def start_window():
         """ update() przyciski oraz wyrysowanie ich na ekran """
         buttons.update()
         buttons.draw(display_screen_window)
-        settings_window()
         """ Uaktualnienie widoku """
         pygame.display.flip()
         time_clock.tick(FPS)
