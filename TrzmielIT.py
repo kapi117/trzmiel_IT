@@ -60,7 +60,7 @@ start_button_settings_image = 'images/settings/settings_icon.png'
         Pozycja (środek) przycisku ustawień
 """
 start_title_position = (50, 50)
-animation_title_position = (320, 120)
+animation_title_position = (400, 120)
 start_button_1_player_position = (400, 400)
 start_button_2_player_position = (400, 500)
 start_button_settings_position = (40, 560)
