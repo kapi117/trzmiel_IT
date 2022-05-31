@@ -238,6 +238,7 @@ def start_window():
     buttons = pygame.sprite.Group(button_1_player, button_settings, button_2_player)
     """ Rozpoczęcie grania muzyczki w nieskończonej pętli """
     pygame.mixer.Channel(start_music_channel).play(game_sounds["start_music"], -1)
+    pygame.mixer.Channel(start_music_channel).set_volume(0.2)
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
         for event in pygame.event.get():
