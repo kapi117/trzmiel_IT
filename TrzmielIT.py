@@ -289,7 +289,8 @@ def start_window():
     button_music.set_on_click(toggle_music)
     button_sound.set_on_click(toggle_sounds)
 
-    buttons = pygame.sprite.Group(button_1_player, button_settings, button_2_player)
+    buttons = pygame.sprite.Group(button_1_player, button_2_player)
+    group_button_settings = pygame.sprite.Group(button_settings)
     buttons_settings = pygame.sprite.Group(button_music, button_sound)
     """ Rozpoczęcie grania muzyczki w nieskończonej pętli """
     pygame.mixer.Channel(start_music_channel).play(game_sounds["start_music"], -1)
@@ -317,12 +318,15 @@ def start_window():
             display_screen_window.blit(game_images['start_background'], (-main_screen_motion, 0))
         display_screen_window.blit(game_images['start_title'], start_title_position)
         """ update() przyciski oraz wyrysowanie ich na ekran """
-        buttons.update()
+        group_button_settings.update()
+        group_button_settings.draw(display_screen_window)
         buttons.draw(display_screen_window)
         if open_settings:
             settings_window()
             buttons_settings.update()
             buttons_settings.draw(display_screen_window)
+        else:
+            buttons.update()
         """ Uaktualnienie widoku """
         pygame.display.flip()
         time_clock.tick(FPS)
