@@ -54,6 +54,7 @@ start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
+trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 start_music = 'sounds/music.wav'
 start_click_sound = 'sounds/click.wav'
 on_hover = 'sounds/on_hover.wav'
@@ -76,16 +77,18 @@ settings_note_image = 'images/settings/note.png'
     start_button_settings_position : Tuple [int, int]
         Pozycja (środek) przycisku ustawień
 """
-start_title_position = (50, 50)
+animation_title_position = (400, 120)
 start_button_1_player_position = (400, 400)
 start_button_2_player_position = (400, 500)
 start_button_settings_position = (40, 560)
+start_trzmiel_position = (150, 280)
 settings_window_position = (95, 100)
 settings_title_position = (247, 120)
 settings_button_position_1 = (500, 250)
 settings_button_position_2 = (500, 400)
 settings_speaker_position = (250, 200)
 settings_note_position = (250, 350)
+
 """
     Rozmiary obrazków
     -----------------
@@ -93,6 +96,7 @@ settings_note_position = (250, 350)
         Rozmiar przycisku ustawień
 """
 start_button_settings_size = (50, 50)
+trzmiel_size = (120, 60)
 settings_title_size = (305, 45)
 settings_button_pressed_size = (100, 100)
 settings_button_not_pressed_size = (100, 100)
@@ -270,6 +274,79 @@ def settings_window():
     display_screen_window.blit(game_images['settings_note'], settings_note_position)
 
 
+class TrzmielSprite(pygame.sprite.Sprite):
+    def __init__(self, center, images):
+        super().__init__()
+        self.original_images = images
+        self.images = images
+        self.current_index = 0
+        self.image = images[self.current_index]
+        self.rect = self.image.get_rect(center=center)
+        self.grow = 0
+        self.mode = 1
+        self.y_move = 5
+
+    def change_image(self):
+        self.current_index = (self.current_index + 1) % len(self.images)
+        self.image = self.images[self.current_index]
+        self.rect = self.image.get_rect(center=self.rect.center)
+
+    def update(self):
+        self.change_image()
+        if self.grow > self.y_move:
+            self.mode = -1
+        if self.grow < -self.y_move:
+            self.mode = 1
+            """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
+        self.grow += 1 * self.mode
+        center = self.rect.center
+        self.rect = self.image.get_rect(center = (center[0], center[1]+self.grow))
+
+
+class AnimateSprite(pygame.sprite.Sprite):
+    """
+    :class AnimateSprite: Klasa odpowiedzialna za animacje pulsowania.
+        :ivar self.original_image: Oryginalny obrazek przekazany przy wywołaniu
+        :type self.original_image: image.pyi
+        :ivar self.image: Aktualny obrazek
+        :type self.image: image.pyi
+        :ivar self.rect: Prostokąt do wyświetlania obrazka
+        :type self.rect: pygame.Surface
+        :ivar self.mode: Kierunek zmiany wielkości (powiększanie[+] , zmniejszanie [-])
+        :type self.image: int
+        :ivar self.grow: Parametr zwiększania co klatkę
+        :type self.grow: int
+        :ivar self.scale: Skala powiększenia
+        :type self.scale: int
+
+    """
+
+    def __init__(self, center, image, scale):
+        super().__init__()
+        self.original_image = image
+        self.image = image
+        self.rect = self.image.get_rect(center=center)
+        self.mode = 1
+        self.grow = 0
+        self.scale = scale
+
+    def update(self):
+        """ Function update: Funkcja odpowiedzzialna za powiększanie lub zmneijszanie obrazku co skok zegara """
+        if self.grow > self.scale:
+            self.mode = -1
+        if self.grow < 1:
+            self.mode = 1
+            """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
+        self.grow += 1 * self.mode
+
+        orig_x, orig_y = self.original_image.get_size()
+        size_x = orig_x + round(self.grow)
+        size_y = orig_y + (round(self.grow) * 0.5)
+        """ Mechanizm powiększania poprzez dodawanie wartości do rozmiarów obrazka """
+        self.image = pygame.transform.scale(self.original_image, (size_x, size_y))
+        self.rect = self.image.get_rect(center=self.rect.center)
+
+
 def start_window():
     """
     :function start_window: Funkcja odpowiedzialna za działanie okna startowego
@@ -289,7 +366,12 @@ def start_window():
     button_music.set_on_click(toggle_music)
     button_sound.set_on_click(toggle_sounds)
 
-    buttons = pygame.sprite.Group(button_1_player, button_2_player)
+    trzmiel = TrzmielSprite(start_trzmiel_position, game_images['trzmiel'])
+    trzmiel_group = pygame.sprite.Group(trzmiel)
+
+    title_animation = AnimateSprite(animation_title_position,
+                                    pygame.image.load(start_title_image), 40)
+    buttons = pygame.sprite.Group(button_1_player, button_2_player, title_animation)
     group_button_settings = pygame.sprite.Group(button_settings)
     buttons_settings = pygame.sprite.Group(button_music, button_sound)
     """ Rozpoczęcie grania muzyczki w nieskończonej pętli """
@@ -316,11 +398,12 @@ def start_window():
             if main_screen_motion >= 3202.0:
                 main_screen_motion = 0
             display_screen_window.blit(game_images['start_background'], (-main_screen_motion, 0))
-        display_screen_window.blit(game_images['start_title'], start_title_position)
         """ update() przyciski oraz wyrysowanie ich na ekran """
         group_button_settings.update()
         group_button_settings.draw(display_screen_window)
         buttons.draw(display_screen_window)
+        trzmiel_group.update()
+        trzmiel_group.draw(display_screen_window)
         if open_settings:
             settings_window()
             buttons_settings.update()
@@ -359,6 +442,9 @@ if __name__ == "__main__":
         pygame.image.load(settings_speaker_image).convert_alpha(), settings_speaker_size)
     game_images['settings_note'] = pygame.transform.scale(
         pygame.image.load(settings_note_image).convert_alpha(), settings_note_size)
+    game_images['trzmiel'] = [
+        pygame.transform.smoothscale(pygame.image.load(trzmiel_images[x]).convert_alpha(), trzmiel_size) for x in
+        range(4)]
 
     """ Przypisanie dźwięków do game_sounds na podstawie ich ścieżek """
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
