@@ -282,6 +282,9 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.current_index = 0
         self.image = images[self.current_index]
         self.rect = self.image.get_rect(center=center)
+        self.grow = 0
+        self.mode = 1
+        self.y_move = 5
 
     def change_image(self):
         self.current_index = (self.current_index + 1) % len(self.images)
@@ -290,6 +293,14 @@ class TrzmielSprite(pygame.sprite.Sprite):
 
     def update(self):
         self.change_image()
+        if self.grow > self.y_move:
+            self.mode = -1
+        if self.grow < -self.y_move:
+            self.mode = 1
+            """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
+        self.grow += 1 * self.mode
+        center = self.rect.center
+        self.rect = self.image.get_rect(center = (center[0], center[1]+self.grow))
 
 
 class AnimateSprite(pygame.sprite.Sprite):
