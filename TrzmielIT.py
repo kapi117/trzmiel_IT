@@ -332,7 +332,7 @@ def start_window():
     button_sound.set_on_click(toggle_sounds)
 
     title_animation = AnimateSprite(animation_title_position,
-                                    pygame.image.load('images/start/title_animation/title03.png'), 40)
+                                    pygame.image.load(start_title_image), 40)
     buttons = pygame.sprite.Group(button_1_player, button_2_player, title_animation)
     group_button_settings = pygame.sprite.Group(button_settings)
     buttons_settings = pygame.sprite.Group(button_music, button_sound)
