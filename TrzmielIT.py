@@ -313,7 +313,7 @@ def start_window():
         while acc >= 1:
             acc -= 1
             main_screen_motion += 0.1
-            if main_screen_motion >= 800.0:
+            if main_screen_motion >= 3202.0:
                 main_screen_motion = 0
             display_screen_window.blit(game_images['start_background'], (-main_screen_motion, 0))
         display_screen_window.blit(game_images['start_title'], start_title_position)
