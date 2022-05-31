@@ -82,8 +82,8 @@ start_button_2_player_position = (400, 500)
 start_button_settings_position = (40, 560)
 settings_window_position = (95, 100)
 settings_title_position = (247, 120)
-settings_button_position_1 = (450, 200)
-settings_button_position_2 = (450, 350)
+settings_button_position_1 = (500, 250)
+settings_button_position_2 = (500, 400)
 settings_speaker_position = (250, 200)
 settings_note_position = (250, 350)
 """
@@ -112,6 +112,9 @@ start_click_sound_channel = 1
 """
 game_images = {}
 game_sounds = {}
+
+click = False
+open_settings = False
 
 
 class ButtonSprite(pygame.sprite.Sprite):
@@ -154,6 +157,7 @@ class ButtonSprite(pygame.sprite.Sprite):
                     self.center[1] - self.image.get_height() / 2,
                     self.center[1] + self.image.get_height() / 2)
         self.played = False
+        self.on_click = None
 
     def enlarge(self, scale_factor=1.1):
         """
@@ -177,6 +181,9 @@ class ButtonSprite(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.original_image, self.original_image.get_size())
         self.rect = self.image.get_rect(center=self.rect.center)
 
+    def set_on_click(self, func):
+        self.on_click = func
+
     def update(self):
         """
         :function update: Funkcja dziedziczona po pygame.sprite.Sprite, wywoływana co tyknięcie zegara
@@ -187,6 +194,8 @@ class ButtonSprite(pygame.sprite.Sprite):
                 pygame.mixer.Channel(start_click_sound_channel).play(game_sounds["on_hover"])
                 self.played = True
             self.enlarge()
+            if click and self.on_click:
+                self.on_click()
         else:
             """ W przeciwnym razie oryginalny obrazek i nie zagrano jeszcze dźwięku """
             self.reset_image()
@@ -205,6 +214,9 @@ def toggle_music():
     else:
         pygame.mixer.Channel(start_music_channel).stop()
 
+def toggle_settings_window():
+    global open_settings
+    open_settings = not open_settings
 
 def toggle_sounds():
     """
@@ -236,8 +248,9 @@ def settings_window():
     display_screen_window.blit(game_images['settings_speaker'], settings_speaker_position)
     display_screen_window.blit(game_images['settings_note'], settings_note_position)
     #display_screen_window.blit(game_images['settings_button_pressed'], settings_button_position_1)
-    display_screen_window.blit(game_images['settings_button_not_pressed'], settings_button_position_1)
-    display_screen_window.blit(game_images['settings_button_not_pressed'], settings_button_position_2)
+    button_music = ButtonSprite(game_images['settings_button_not_pressed'], settings_button_position_1)
+    button_sound = ButtonSprite(game_images['settings_button_not_pressed'], settings_button_position_2)
+    return button_music, button_sound
 
 
 def start_window():
@@ -251,6 +264,7 @@ def start_window():
     button_1_player = ButtonSprite(game_images['start_button_1_player'], start_button_1_player_position)
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
+    button_settings.set_on_click(toggle_settings_window)
     buttons = pygame.sprite.Group(button_1_player, button_settings, button_2_player)
     """ Rozpoczęcie grania muzyczki w nieskończonej pętli """
     pygame.mixer.Channel(start_music_channel).play(game_sounds["start_music"], -1)
@@ -260,11 +274,15 @@ def start_window():
     main_screen_motion = 1
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
+        global click
+        click = False
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
-                """ Animacja tła oraz umiejscowienie tytułu """
+            elif event.type == MOUSEBUTTONUP:
+                click = True
+        """ Animacja tła oraz umiejscowienie tytułu """
         acc += time_clock.tick(FPS)
         while acc >= 1:
             acc -= 1
@@ -276,6 +294,11 @@ def start_window():
         """ update() przyciski oraz wyrysowanie ich na ekran """
         buttons.update()
         buttons.draw(display_screen_window)
+        if open_settings:
+            button_music, button_sound = settings_window()
+            buttons_settings = pygame.sprite.Group(button_music, button_sound)
+            buttons_settings.update()
+            buttons_settings.draw(display_screen_window)
         """ Uaktualnienie widoku """
         pygame.display.flip()
         time_clock.tick(FPS)
