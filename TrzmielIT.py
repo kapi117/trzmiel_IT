@@ -76,7 +76,7 @@ settings_note_image = 'images/settings/note.png'
     start_button_settings_position : Tuple [int, int]
         Pozycja (środek) przycisku ustawień
 """
-start_title_position = (50, 50)
+animation_title_position = (400, 120)
 start_button_1_player_position = (400, 400)
 start_button_2_player_position = (400, 500)
 start_button_settings_position = (40, 560)
@@ -270,6 +270,48 @@ def settings_window():
     display_screen_window.blit(game_images['settings_note'], settings_note_position)
 
 
+class AnimateSprite(pygame.sprite.Sprite):
+    """
+    :class AnimateSprite: Klasa odpowiedzialna za animacje pulsowania.
+        :ivar self.original_image: Oryginalny obrazek przekazany przy wywołaniu
+        :type self.original_image: image.pyi
+        :ivar self.image: Aktualny obrazek
+        :type self.image: image.pyi
+        :ivar self.rect: Prostokąt do wyświetlania obrazka
+        :type self.rect: pygame.Surface
+        :ivar self.mode: Kierunek zmiany wielkości (powiększanie[+] , zmniejszanie [-])
+        :type self.image: int
+        :ivar self.grow: Parametr zwiększania co klatkę
+        :type self.grow: int
+        :ivar self.scale: Skala powiększenia
+        :type self.scale: int
+
+    """
+    def __init__(self, center, image, scale):
+        super().__init__()
+        self.original_image = image
+        self.image = image
+        self.rect = self.image.get_rect(center = center)
+        self.mode = 1
+        self.grow = 0
+        self.scale = scale
+
+    def update(self):
+        """ Function update: Funkcja odpowiedzzialna za powiększanie lub zmneijszanie obrazku co skok zegara """
+        if self.grow > self.scale:
+            self.mode = -1
+        if self.grow < 1:
+            self.mode = 1
+            """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
+        self.grow += 1 * self.mode
+
+        orig_x, orig_y = self.original_image.get_size()
+        size_x = orig_x + round(self.grow)
+        size_y = orig_y + (round(self.grow) * 0.5)
+        """ Mechanizm powiększania poprzez dodawanie wartości do rozmiarów obrazka """
+        self.image = pygame.transform.scale(self.original_image, (size_x, size_y))
+        self.rect = self.image.get_rect(center = self.rect.center)
+
 def start_window():
     """
     :function start_window: Funkcja odpowiedzialna za działanie okna startowego
@@ -289,7 +331,9 @@ def start_window():
     button_music.set_on_click(toggle_music)
     button_sound.set_on_click(toggle_sounds)
 
-    buttons = pygame.sprite.Group(button_1_player, button_2_player)
+    title_animation = AnimateSprite(animation_title_position,
+                                    pygame.image.load('images/start/title_animation/title03.png'), 40)
+    buttons = pygame.sprite.Group(button_1_player, button_2_player, title_animation)
     group_button_settings = pygame.sprite.Group(button_settings)
     buttons_settings = pygame.sprite.Group(button_music, button_sound)
     """ Rozpoczęcie grania muzyczki w nieskończonej pętli """
@@ -316,7 +360,6 @@ def start_window():
             if main_screen_motion >= 3202.0:
                 main_screen_motion = 0
             display_screen_window.blit(game_images['start_background'], (-main_screen_motion, 0))
-        display_screen_window.blit(game_images['start_title'], start_title_position)
         """ update() przyciski oraz wyrysowanie ich na ekran """
         group_button_settings.update()
         group_button_settings.draw(display_screen_window)
