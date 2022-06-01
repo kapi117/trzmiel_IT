@@ -250,7 +250,7 @@ if __name__ == "__main__":
     game_images['start_button_2_player'] = pygame.image.load(start_button_2_player_image).convert_alpha()
     game_images['start_title'] = pygame.image.load(start_title_image).convert_alpha()
     game_images['settings_background'] = pygame.image.load(settings_background_image).convert()
-#    game_images['inactive_button'] = pygame.image.load(inactive_button_image).convert()
+#     game_images['inactive_button'] = pygame.image.load(inactive_button_image).convert()
     """ Dodatkowo przeskalowanie ikon w ustawieniach """
     game_images['start_button_settings'] = pygame.transform.scale(
         pygame.image.load(start_button_settings_image).convert_alpha(), start_button_settings_size)
