@@ -23,6 +23,12 @@ import sys
         Okno startowe z biblioteki pygame   
     music_on : bool
         True jeśli ma lecieć muzyka, w innym przypadku False
+    sounds_on : bool
+        True jeśli mają być dźwięki, w innym przypadku False
+    click : bool
+        True tylko raz przy naciśnięciu przycisku potem False
+    open_settings : bool
+        True jeśli ma być otwrte okno, w innym przypadku False
 """
 FPS = 32
 src_width = 800
@@ -30,6 +36,8 @@ src_height = 600
 display_screen_window = pygame.display.set_mode((src_width, src_height))
 music_on = True
 sounds_on = True
+click = False
+open_settings = False
 
 """
     Adresy obrazków i dźwięków
@@ -48,6 +56,8 @@ sounds_on = True
         Adres dźwięku melodii startowej
     start_click_sound : string
         Adres dźwięku kliknięcia przycisku
+    on_hover_sound : string
+        Adres dźwięku
 """
 start_background_image = 'images/start/background.png'
 start_title_image = 'images/start/title.png'
@@ -58,7 +68,7 @@ icon_image = 'images/start/icon.png'
 trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 start_music = 'audio/theme_music.mp3'
 start_click_sound = 'sounds/click.wav'
-on_hover = 'sounds/on_hover.wav'
+on_hover_sound = 'sounds/on_hover.wav'
 
 settings_background_image = 'images/settings/settings.background.png'
 settings_title_image = 'images/settings/settings.title.png'
@@ -91,10 +101,8 @@ settings_speaker_position = (250, 200)
 settings_note_position = (250, 350)
 
 """
-    Rozmiary obrazków
+    Rozmiary obrazków : Tuple[int, int]
     -----------------
-    start_button_settings_size : Tuple [int, int]
-        Rozmiar przycisku ustawień
 """
 start_button_settings_size = (50, 50)
 trzmiel_size = (120, 60)
@@ -118,9 +126,6 @@ start_click_sound_channel = 1
 """
 game_images = {}
 game_sounds = {}
-
-click = False
-open_settings = False
 
 
 class ButtonSprite(pygame.sprite.Sprite):
@@ -199,12 +204,23 @@ class ButtonSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center)
 
     def set_on_click(self, func):
+        """
+        :function set_on_click: Funkcja przypisująca funkcję do uruchomienia przy naciśnięciu przycisku
+        :param func: Funkcja która ma być zwracana przy kliknięciu na przycisk
+        """
         self.on_click = func
 
     def set_image_clicked(self, image):
+        """
+        :function set_image_clicked: Funkcja przypisująca zdjęcie do pokazania przy naciśnięciu przycisku
+        :param image: Zdjęcie które ma być wyświetlane po naciśnięciu przycisku
+        """
         self.image_clicked = image
 
     def toggle_clicked(self):
+        """
+        :function toggle_clicked: Funkcja zmieniająca wartość self.clicked na przeciwną
+        """
         self.clicked = not self.clicked
 
     def update(self):
@@ -214,7 +230,7 @@ class ButtonSprite(pygame.sprite.Sprite):
         if check_if_clicked(pygame.mouse.get_pos(), self.pos):
             """ Jeśli najechany to powiększ i wydaj dźwięk (jeśli nie został zagrany wcześniej) """
             if not self.played:
-                pygame.mixer.Channel(start_click_sound_channel).play(game_sounds["on_hover"])
+                pygame.mixer.Channel(start_click_sound_channel).play(game_sounds["on_hover_sound"])
                 self.played = True
             self.enlarge()
             if click and self.on_click:
@@ -240,6 +256,9 @@ def toggle_music():
 
 
 def toggle_settings_window():
+    """
+    :function toggle_settings_window: Funkcja zmieniająca stan zmiennej open_settings
+    """
     global open_settings
     open_settings = not open_settings
 
@@ -270,6 +289,10 @@ def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, in
 
 
 def settings_window():
+    """
+    :function settings_window: Funkcja rysująca na ekranie okienko ustawień
+    :return:
+    """
     display_screen_window.blit(game_images['settings_background'], settings_window_position)
     display_screen_window.blit(game_images['settings_title'], settings_title_position)
     display_screen_window.blit(game_images['settings_speaker'], settings_speaker_position)
@@ -277,6 +300,23 @@ def settings_window():
 
 
 class TrzmielSprite(pygame.sprite.Sprite):
+    """
+        :class TrzmielSprite: Klasa odpowiedzialna za utworzenie i animacje trzmiela.
+            :ivar self.original_images: Oryginalne obrazki przekazane przy wywołaniu
+            :type self.original_images: List[image.pyi]
+            :ivar self.image: Aktualny obrazek
+            :type self.image: image.pyi
+            :ivar self.rect: Prostokąt do wyświetlania obrazka
+            :type self.rect: pygame.Surface
+            :ivar self.mode: Kierunek zmiany wielkości (powiększanie[+] , zmniejszanie [-])
+            :type self.mode: int
+            :ivar self.grow: Parametr zwiększania co klatkę
+            :type self.grow: int
+            :ivar self.y_move: Skala powiększenia
+            :type self.scale: int
+
+        """
+
     def __init__(self, center, images):
         super().__init__()
         self.original_images = images
@@ -289,11 +329,17 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.y_move = 5
 
     def change_image(self):
+        """
+        :function change_image: Funkcja zmieniająca obrazek na następny w liście
+        """
         self.current_index = (self.current_index + 1) % len(self.images)
         self.image = self.images[self.current_index]
         self.rect = self.image.get_rect(center=self.rect.center)
 
     def update(self):
+        """
+            Funkcja wywoływana co tick zegara, ruch trzmiela góra dół (po osiągnięciu odpowiedniej szybkości zwalniamy)
+        """
         self.change_image()
         if self.grow > self.y_move:
             self.mode = -1
@@ -302,7 +348,7 @@ class TrzmielSprite(pygame.sprite.Sprite):
             """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
         self.grow += 1 * self.mode
         center = self.rect.center
-        self.rect = self.image.get_rect(center = (center[0], center[1]+self.grow))
+        self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
 
 
 class AnimateSprite(pygame.sprite.Sprite):
@@ -363,11 +409,13 @@ def start_window():
     button_settings.set_on_click(toggle_settings_window)
     button_sound = ButtonSprite(game_images['settings_button_not_pressed'], settings_button_position_1, sounds_on)
     button_music = ButtonSprite(game_images['settings_button_not_pressed'], settings_button_position_2, music_on)
+    """ Przypisanie reakcji na nacisniecie """
     button_music.set_image_clicked(game_images['settings_button_pressed'])
     button_sound.set_image_clicked(game_images['settings_button_pressed'])
     button_music.set_on_click(toggle_music)
     button_sound.set_on_click(toggle_sounds)
 
+    """ Utworzenie trzmiela """
     trzmiel = TrzmielSprite(start_trzmiel_position, game_images['trzmiel'])
     trzmiel_group = pygame.sprite.Group(trzmiel)
 
@@ -407,6 +455,7 @@ def start_window():
         trzmiel_group.update()
         trzmiel_group.draw(display_screen_window)
         if open_settings:
+            """ jeśli okienko ma być otwarte narysuj je i załącz przyciski od ustawień """
             settings_window()
             buttons_settings.update()
             buttons_settings.draw(display_screen_window)
@@ -452,7 +501,7 @@ if __name__ == "__main__":
     """ Przypisanie dźwięków do game_sounds na podstawie ich ścieżek """
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
     game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
-    game_sounds["on_hover"] = pygame.mixer.Sound(on_hover)
+    game_sounds["on_hover_sound"] = pygame.mixer.Sound(on_hover_sound)
 
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
