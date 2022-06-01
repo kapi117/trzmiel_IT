@@ -55,7 +55,7 @@ start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
 trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
-start_music = 'sounds/music.wav'
+start_music = 'audio/theme_music.mp3'
 start_click_sound = 'sounds/click.wav'
 on_hover = 'sounds/on_hover.wav'
 
