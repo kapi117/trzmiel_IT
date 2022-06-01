@@ -52,6 +52,7 @@ settings_button_pressed_image = 'images/settings/Nacisniety przycisk.png'
 settings_button_not_pressed_image = 'images/settings/przycisk.png'
 settings_speaker_image = 'images/settings/speaker.png'
 settings_note_image = 'images/settings/note.png'
+#inactive_button_image ='images/start/inactive.png'
 """
     Pozycje obrazków
     ----------------
@@ -179,6 +180,15 @@ def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, in
     """
     return bounds[0] <= mouse_pos[0] <= bounds[1] and bounds[2] <= mouse_pos[1] <= bounds[3]
 
+
+#def inactive_button(mouse_pos: Tuple[int, int]):
+#    display_screen_window.blit(game_images['inactive_button'], mouse_pos)
+
+
+
+
+
+
 def settings_window():
     display_screen_window.blit(game_images['settings_background'], settings_window_position)
     display_screen_window.blit(game_images['settings_title'], settings_title_position)
@@ -240,6 +250,7 @@ if __name__ == "__main__":
     game_images['start_button_2_player'] = pygame.image.load(start_button_2_player_image).convert_alpha()
     game_images['start_title'] = pygame.image.load(start_title_image).convert_alpha()
     game_images['settings_background'] = pygame.image.load(settings_background_image).convert()
+#    game_images['inactive_button'] = pygame.image.load(inactive_button_image).convert()
     """ Dodatkowo przeskalowanie ikon w ustawieniach """
     game_images['start_button_settings'] = pygame.transform.scale(
         pygame.image.load(start_button_settings_image).convert_alpha(), start_button_settings_size)
