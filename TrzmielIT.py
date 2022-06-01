@@ -54,6 +54,7 @@ start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
+icon_image = 'images/start/icon.png'
 trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 start_music = 'audio/theme_music.mp3'
 start_click_sound = 'sounds/click.wav'
@@ -97,6 +98,7 @@ settings_note_position = (250, 350)
 """
 start_button_settings_size = (50, 50)
 trzmiel_size = (120, 60)
+icon_size = (64, 32)
 settings_title_size = (305, 45)
 settings_button_pressed_size = (100, 100)
 settings_button_not_pressed_size = (100, 100)
@@ -445,11 +447,15 @@ if __name__ == "__main__":
     game_images['trzmiel'] = [
         pygame.transform.smoothscale(pygame.image.load(trzmiel_images[x]).convert_alpha(), trzmiel_size) for x in
         range(4)]
+    game_images['icon'] = pygame.transform.smoothscale(pygame.image.load(icon_image).convert_alpha(), icon_size)
 
     """ Przypisanie dźwięków do game_sounds na podstawie ich ścieżek """
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
     game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
     game_sounds["on_hover"] = pygame.mixer.Sound(on_hover)
+
+    """ Zmiana ikony programu """
+    pygame.display.set_icon(game_images['icon'])
 
     """ Okno startowe """
     start_window()
