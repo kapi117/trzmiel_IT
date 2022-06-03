@@ -397,8 +397,8 @@ class AnimateSprite(pygame.sprite.Sprite):
 
 def move_sprite_to(sprite, destination, speed):
     center = sprite[0].rect.center
-    if center != destination:
-        to_travel = (destination[0] - center[0], destination[1] - center[1])
+    to_travel = (destination[0] - center[0], destination[1] - center[1])
+    if to_travel != (0, 0):
         if to_travel[0] == 0:
             movement = [0, speed * to_travel[1] / abs(to_travel[1])]
         elif to_travel[1] == 0:
