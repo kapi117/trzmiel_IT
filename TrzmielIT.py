@@ -395,6 +395,20 @@ class AnimateSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center)
 
 
+def move_sprite_to(sprite, destination, speed):
+    center = sprite[0].rect.center
+    if center != destination:
+        to_travel = (destination[0] - center[0], destination[1] - center[1])
+        if to_travel[0] == 0:
+            movement = [0, speed * to_travel[1] / abs(to_travel[1])]
+        elif to_travel[1] == 0:
+            movement = [speed * to_travel[0] / abs(to_travel[0]), 0]
+        else:
+            closer = min(to_travel)
+            movement = [speed * to_travel[0] / abs(closer), speed * to_travel[1] / abs(closer)]
+        sprite[0].rect = sprite[0].image.get_rect(center=(center[0] + movement[0], center[1] + movement[1]))
+
+
 def start_window():
     """
     :function start_window: Funkcja odpowiedzialna za działanie okna startowego
