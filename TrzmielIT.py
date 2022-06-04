@@ -158,6 +158,16 @@ class ButtonSprite(pygame.sprite.Sprite):
         :type center: Tuple[int, int]
         :param clicked: Początkowe wciśnięcie przycisku
         :type clicked: bool
+        :ivar self.original_center: Początkowy środek obiektu
+        :type self.original_center: Tuple[int, int]
+        :ivar self.on_screen: True jeśli obiekt ma być na ekranie
+        :type self.on_screen: bool
+        :ivar self.disappeared: True jeśli obiekt osiągnął pożądaną pozycję opuszczenia ekranu
+        :type self.disappeared: bool
+        :ivar self.place_to_move: Miejsce do którego ma się przesunąć środek obiektu znikając z ekranu
+        :type self.place_to_move: Tuple[int, int]
+        :ivar self.disappear_speed: Prędkość chowania się elementu
+        :type self.disappear_speed: int
         """
         super().__init__()
         self.original_image = image
@@ -173,6 +183,11 @@ class ButtonSprite(pygame.sprite.Sprite):
         self.on_click = None
         self.image_clicked = None
         self.clicked = clicked
+        self.original_center = center
+        self.on_screen = True
+        self.disappeared = False
+        self.place_to_move = center
+        self.disappear_speed = 10
 
     def enlarge(self, scale_factor=1.1):
         """
@@ -203,6 +218,27 @@ class ButtonSprite(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(image_to_show, image_to_show.get_size())
         self.rect = self.image.get_rect(center=self.rect.center)
 
+    def swipe_out(self):
+        """
+        Funkcja ustawiająca on_screen na False oraz obliczająca pożądane miejsce wysunięcia (do najbliższej krawędzi)
+        """
+        self.on_screen = False
+        """ do której krawędzi najbliżej """
+        closest_border = min(self.rect.centerx, src_width - self.rect.centerx, self.rect.centery,
+                             src_height - self.rect.centery)
+        if closest_border == self.rect.centerx:
+            """ najbliżej w lewo """
+            self.place_to_move = (-self.image.get_width() / 2 - 5, self.rect.centery)
+        elif closest_border == src_width - self.rect.centerx:
+            """ najbliżej w prawo"""
+            self.place_to_move = (src_width + self.image.get_width() / 2 + 5, self.rect.centery)
+        elif closest_border == self.rect.centery:
+            """ najbliżej w górę """
+            self.place_to_move = (self.rect.centerx, -self.image.get_height() / 2 - 5)
+        else:
+            """ najbliżej w dół """
+            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height() / 2 + 5)
+
     def set_on_click(self, func):
         """
         :function set_on_click: Funkcja przypisująca funkcję do uruchomienia przy naciśnięciu przycisku
@@ -227,19 +263,23 @@ class ButtonSprite(pygame.sprite.Sprite):
         """
         :function update: Funkcja dziedziczona po pygame.sprite.Sprite, wywoływana co tyknięcie zegara
         """
-        if check_if_clicked(pygame.mouse.get_pos(), self.pos):
-            """ Jeśli najechany to powiększ i wydaj dźwięk (jeśli nie został zagrany wcześniej) """
-            if not self.played:
-                pygame.mixer.Channel(start_click_sound_channel).play(game_sounds["on_hover_sound"])
-                self.played = True
-            self.enlarge()
-            if click and self.on_click:
-                self.on_click()
-                self.toggle_clicked()
+        if self.on_screen:
+            if check_if_clicked(pygame.mouse.get_pos(), self.pos):
+                """ Jeśli najechany to powiększ i wydaj dźwięk (jeśli nie został zagrany wcześniej) """
+                if not self.played:
+                    pygame.mixer.Channel(start_click_sound_channel).play(game_sounds["on_hover_sound"])
+                    self.played = True
+                self.enlarge()
+                if click and self.on_click:
+                    self.on_click()
+                    self.toggle_clicked()
+            else:
+                """ W przeciwnym razie oryginalny obrazek i nie zagrano jeszcze dźwięku """
+                self.reset_image()
+                self.played = False
         else:
-            """ W przeciwnym razie oryginalny obrazek i nie zagrano jeszcze dźwięku """
-            self.reset_image()
-            self.played = False
+            """ jeśli nie ma być na ekranie """
+            self.disappeared = move_sprite_to([self], self.place_to_move, self.disappear_speed)
 
 
 def toggle_music():
