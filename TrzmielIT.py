@@ -29,6 +29,8 @@ import sys
         True tylko raz przy naciśnięciu przycisku potem False
     open_settings : bool
         True jeśli ma być otwrte okno, w innym przypadku False
+    start_disappear : bool
+        True jeśli ma zaniknąć okno startowe
 """
 FPS = 32
 src_width = 800
@@ -38,6 +40,7 @@ music_on = True
 sounds_on = True
 click = False
 open_settings = False
+start_disappear = False
 
 """
     Adresy obrazków i dźwięków
@@ -442,16 +445,16 @@ class AnimateSprite(pygame.sprite.Sprite):
                              src_height - self.rect.centery)
         if closest_border == self.rect.centerx:
             """ najbliżej w lewo """
-            self.place_to_move = (-self.image.get_width() / 2 - 5, self.rect.centery)
+            self.place_to_move = (-self.image.get_width() / 2 - 10, self.rect.centery)
         elif closest_border == src_width - self.rect.centerx:
             """ najbliżej w prawo"""
-            self.place_to_move = (src_width + self.image.get_width() / 2 + 5, self.rect.centery)
+            self.place_to_move = (src_width + self.image.get_width() / 2 + 10, self.rect.centery)
         elif closest_border == self.rect.centery:
             """ najbliżej w górę """
-            self.place_to_move = (self.rect.centerx, -self.image.get_height() / 2 - 5)
+            self.place_to_move = (self.rect.centerx, -self.image.get_height() / 2 - 10)
         else:
             """ najbliżej w dół """
-            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height() / 2 + 5)
+            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height() / 2 + 10)
 
     def update(self):
         """ Function update: Funkcja odpowiedzzialna za powiększanie lub zmneijszanie obrazku co skok zegara """
@@ -503,18 +506,28 @@ def move_sprite_to(sprite, destination, speed):
         return True
 
 
+def start_1_player_mode():
+    global start_disappear
+    start_disappear = True
+
+
 def start_window():
     """
     :function start_window: Funkcja odpowiedzialna za działanie okna startowego
+    all_sprites : List[pygame.sprite.Sprite]
+        Tablica przechowywująca wszystkie interaktywne elementy ekranu startowego które mają zniknąć
     button_* : ButtonSprite
         Zmienne przechowujące przyciski jako obiekty ButtonSprite (domyślnie powiększające się przy najechaniu)
     buttons_* : pygame.sprite.Group
         Grupa przycisków w celu łatwego wywołanie update() na wszystkich
     """
+    all_sprites = []
     button_1_player = ButtonSprite(game_images['start_button_1_player'], start_button_1_player_position)
+    button_1_player.set_on_click(start_1_player_mode)
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
     button_settings.set_on_click(toggle_settings_window)
+    all_sprites.extend([button_1_player, button_2_player, button_settings])
     button_sound = ButtonSprite(game_images['settings_button_not_pressed'], settings_button_position_1, sounds_on)
     button_music = ButtonSprite(game_images['settings_button_not_pressed'], settings_button_position_2, music_on)
     """ Przypisanie reakcji na nacisniecie """
@@ -529,6 +542,7 @@ def start_window():
 
     title_animation = AnimateSprite(animation_title_position,
                                     pygame.image.load(start_title_image), 40)
+    all_sprites.append(title_animation)
     buttons = pygame.sprite.Group(button_1_player, button_2_player, title_animation)
     group_button_settings = pygame.sprite.Group(button_settings)
     buttons_settings = pygame.sprite.Group(button_music, button_sound)
@@ -540,7 +554,7 @@ def start_window():
     main_screen_motion = 1
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
-        global click
+        global click, start_disappear
         click = False
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
@@ -562,6 +576,10 @@ def start_window():
         buttons.draw(display_screen_window)
         trzmiel_group.update()
         trzmiel_group.draw(display_screen_window)
+        if start_disappear:
+            for sprite in all_sprites:
+                sprite.swipe_out()
+            start_disappear = False
         if open_settings:
             """ jeśli okienko ma być otwarte narysuj je i załącz przyciski od ustawień """
             settings_window()
