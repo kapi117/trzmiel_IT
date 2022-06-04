@@ -366,7 +366,16 @@ class AnimateSprite(pygame.sprite.Sprite):
         :type self.grow: int
         :ivar self.scale: Skala powiększenia
         :type self.scale: int
-
+        :ivar self.original_center: Początkowy środek obiektu
+        :type self.original_center: Tuple[int, int]
+        :ivar self.on_screen: True jeśli obiekt ma być na ekranie
+        :type self.on_screen: bool
+        :ivar self.disappeared: True jeśli obiekt osiągnął pożądaną pozycję opuszczenia ekranu
+        :type self.disappeared: bool
+        :ivar self.place_to_move: Miejsce do którego ma się przesunąć środek obiektu znikając z ekranu
+        :type self.place_to_move: Tuple[int, int]
+        :ivar self.disappear_speed: Prędkość chowania się elementu
+        :type self.disappear_speed: int
     """
 
     def __init__(self, center, image, scale):
@@ -377,22 +386,53 @@ class AnimateSprite(pygame.sprite.Sprite):
         self.mode = 1
         self.grow = 0
         self.scale = scale
+        self.original_center = center
+        self.on_screen = True
+        self.disappeared = False
+        self.place_to_move = center
+        self.disappear_speed = 10
+
+    def swipe_out(self):
+        """
+        Funkcja ustawiająca on_screen na False oraz obliczająca pożądane miejsce wysunięcia (do najbliższej krawędzi)
+        """
+        self.on_screen = False
+        """ do której krawędzi najbliżej """
+        closest_border = min(self.rect.centerx, src_width - self.rect.centerx, self.rect.centery,
+                             src_height - self.rect.centery)
+        if closest_border == self.rect.centerx:
+            """ najbliżej w lewo """
+            self.place_to_move = (-self.image.get_width() / 2 - 5, self.rect.centery)
+        elif closest_border == src_width - self.rect.centerx:
+            """ najbliżej w prawo"""
+            self.place_to_move = (src_width + self.image.get_width() / 2 + 5, self.rect.centery)
+        elif closest_border == self.rect.centery:
+            """ najbliżej w górę """
+            self.place_to_move = (self.rect.centerx, -self.image.get_height() / 2 - 5)
+        else:
+            """ najbliżej w dół """
+            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height() / 2 + 5)
 
     def update(self):
         """ Function update: Funkcja odpowiedzzialna za powiększanie lub zmneijszanie obrazku co skok zegara """
-        if self.grow > self.scale:
-            self.mode = -1
-        if self.grow < 1:
-            self.mode = 1
-            """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
-        self.grow += 1 * self.mode
+        if self.on_screen:
+            """ jeśli ma być na ekranie """
+            if self.grow > self.scale:
+                self.mode = -1
+            if self.grow < 1:
+                self.mode = 1
+                """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
+            self.grow += 1 * self.mode
 
-        orig_x, orig_y = self.original_image.get_size()
-        size_x = orig_x + round(self.grow)
-        size_y = orig_y + (round(self.grow) * 0.5)
-        """ Mechanizm powiększania poprzez dodawanie wartości do rozmiarów obrazka """
-        self.image = pygame.transform.scale(self.original_image, (size_x, size_y))
-        self.rect = self.image.get_rect(center=self.rect.center)
+            orig_x, orig_y = self.original_image.get_size()
+            size_x = orig_x + round(self.grow)
+            size_y = orig_y + (round(self.grow) * 0.5)
+            """ Mechanizm powiększania poprzez dodawanie wartości do rozmiarów obrazka """
+            self.image = pygame.transform.scale(self.original_image, (size_x, size_y))
+            self.rect = self.image.get_rect(center=self.rect.center)
+        else:
+            """ jeśli nie ma być na ekranie """
+            self.disappeared = move_sprite_to([self], self.place_to_move, self.disappear_speed)
 
 
 def move_sprite_to(sprite, destination, speed):
