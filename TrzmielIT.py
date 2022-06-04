@@ -396,9 +396,19 @@ class AnimateSprite(pygame.sprite.Sprite):
 
 
 def move_sprite_to(sprite, destination, speed):
+    """
+    :function move_sprite_to: Funkcja przesuwająca stopniowo Sprite do miejsca docelowego
+    :param sprite: Obiekt do przesuwania
+    :param destination: Miejsce docelowe
+    :param speed: Prędkość (dotyczy mniejszej wartości)
+    :return: True jeśli jest już na miejscu
+    """
+
+    """ Pobierz środek i oblicz odległości do pokonania """
     center = sprite[0].rect.center
     to_travel = (destination[0] - center[0], destination[1] - center[1])
     if to_travel != (0, 0):
+        """ Jeśli nie jest na odpowiednim miejscu to przesun w odpowiedni sposob"""
         if to_travel[0] == 0:
             movement = [0, speed * to_travel[1] / abs(to_travel[1])]
         elif to_travel[1] == 0:
@@ -406,7 +416,11 @@ def move_sprite_to(sprite, destination, speed):
         else:
             closer = min(to_travel)
             movement = [speed * to_travel[0] / abs(closer), speed * to_travel[1] / abs(closer)]
+        """ Przypisz środek po przesunięciu """
         sprite[0].rect = sprite[0].image.get_rect(center=(center[0] + movement[0], center[1] + movement[1]))
+        return False
+    else:
+        return True
 
 
 def start_window():
