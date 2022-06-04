@@ -3,6 +3,7 @@ from typing import Tuple
 import pygame
 from pygame.locals import *
 import sys
+import random
 
 """
     TrzmielIT
@@ -347,6 +348,28 @@ class AnimateSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.rect.center)
 
 
+"""Klasa odpowiedzialna za pojawianie się na ekranie i animację przeszkody"""
+
+
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self, pos ,picture_path):
+        super().__init__()
+        self.pos = pos
+        self.image = pygame.image.load(picture_path)
+        self.rect = self.image.get_rect(center=self.pos)
+
+    """funkcja update powoduje pomniejszenie położenia x przeszkody o 10 pikseli zgodnie z zegarem"""
+
+    def update(self):
+        center = self.rect.center
+        self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
+        if center[0] == -200:
+            """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
+             oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów
+            hint: randomizacja powinna odbyć się na miejscu self.pos[1]"""
+            self.rect = self.image.get_rect(center=(1000, random.randrange(60,540)))
+
+
 def start_window():
     """
     :function start_window: Funkcja odpowiedzialna za działanie okna startowego
@@ -365,6 +388,12 @@ def start_window():
     button_sound.set_image_clicked(game_images['settings_button_pressed'])
     button_music.set_on_click(toggle_music)
     button_sound.set_on_click(toggle_sounds)
+
+    obstacle_group = pygame.sprite.Group()
+
+    for obst in range(3):
+        new_obst = Obstacle([1000 + obst * 400, random.randrange(60,540)],"images/game/rura.png")
+        obstacle_group.add(new_obst)
 
     trzmiel = TrzmielSprite(start_trzmiel_position, game_images['trzmiel'])
     trzmiel_group = pygame.sprite.Group(trzmiel)
@@ -404,6 +433,8 @@ def start_window():
         buttons.draw(display_screen_window)
         trzmiel_group.update()
         trzmiel_group.draw(display_screen_window)
+        obstacle_group.update()
+        obstacle_group.draw(display_screen_window)
         if open_settings:
             settings_window()
             buttons_settings.update()
