@@ -273,6 +273,12 @@ def settings_window():
     display_screen_window.blit(game_images['settings_speaker'], settings_speaker_position)
     display_screen_window.blit(game_images['settings_note'], settings_note_position)
 
+class Gravitation:
+    def __init__(self):
+        self.y_velocity = 0
+    def gravitation_pull(self):
+        self.y_velocity -= 0.5
+
 
 class TrzmielSprite(pygame.sprite.Sprite):
     def __init__(self, center, images):
@@ -293,6 +299,7 @@ class TrzmielSprite(pygame.sprite.Sprite):
 
     def update(self):
         self.change_image()
+
         if self.grow > self.y_move:
             self.mode = -1
         if self.grow < -self.y_move:
