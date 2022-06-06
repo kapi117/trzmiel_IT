@@ -363,10 +363,10 @@ class Obstacle(pygame.sprite.Sprite):
     def update(self):
         center = self.rect.center
         self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
+        """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
         if center[0] == -200:
             """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
-             oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów
-            hint: randomizacja powinna odbyć się na miejscu self.pos[1]"""
+             oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów"""
             self.rect = self.image.get_rect(center=(1000, random.randrange(60,540)))
 
 
@@ -388,7 +388,8 @@ def start_window():
     button_sound.set_image_clicked(game_images['settings_button_pressed'])
     button_music.set_on_click(toggle_music)
     button_sound.set_on_click(toggle_sounds)
-
+    """ Poniżej tworze 4 obiekty klasy obstacle, odległe od siebie o 400 px pojawiające się za ekranem
+    obiekty te są dodawane do grupy także można je wszystkie wywoływać i wpływać na nie za pomocą pojedynczych poleceń"""
     obstacle_group = pygame.sprite.Group()
 
     for obst in range(3):
