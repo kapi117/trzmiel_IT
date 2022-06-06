@@ -68,6 +68,7 @@ start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
 start_inactive_button_image = 'images/start/inactive_button.png'
+
 icon_image = 'images/start/icon.png'
 trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 start_music = 'audio/theme_music.mp3'
@@ -117,6 +118,12 @@ settings_button_not_pressed_size = (100, 100)
 settings_speaker_size = (100, 100)
 settings_note_size = (100, 100)
 inactive_button_size = (260,120)
+
+"""
+    Nr kanałów dla poszczególnych dźwięków
+"""
+start_music_channel = 0
+start_click_sound_channel = 1
 
 """
     Nr kanałów dla poszczególnych dźwięków
@@ -359,6 +366,7 @@ class TrzmielSprite(pygame.sprite.Sprite):
             :type self.grow: int
             :ivar self.y_move: Skala powiększenia
             :type self.scale: int
+
         """
 
     def __init__(self, center, images):
@@ -590,12 +598,14 @@ def start_window():
             buttons_settings.draw(display_screen_window)
         else:
             buttons.update()
+
         """ Nieaktywny guzik """
         if (click and check_if_clicked(pygame.mouse.get_pos(),(start_button_2_player_position[0] - 398/2,start_button_2_player_position[0]+398/2,start_button_2_player_position[1]-85/2,start_button_2_player_position[1]+85/2)) or (inactive_acc > 0 and inactive_acc < 40)):
             display_screen_window.blit(game_images['inactive_button'], pygame.mouse.get_pos())
             inactive_acc +=1
         else:
             inactive_acc =0
+
         """ Uaktualnienie widoku """
         pygame.display.flip()
         time_clock.tick(FPS)
@@ -628,8 +638,10 @@ if __name__ == "__main__":
         pygame.image.load(settings_speaker_image).convert_alpha(), settings_speaker_size)
     game_images['settings_note'] = pygame.transform.scale(
         pygame.image.load(settings_note_image).convert_alpha(), settings_note_size)
+
     game_images['inactive_button'] = pygame.transform.scale(
         pygame.image.load(start_inactive_button_image).convert_alpha(), inactive_button_size)
+
 
     game_images['trzmiel'] = [
         pygame.transform.smoothscale(pygame.image.load(trzmiel_images[x]).convert_alpha(), trzmiel_size) for x in
@@ -646,3 +658,5 @@ if __name__ == "__main__":
 
     """ Okno startowe """
     start_window()
+
+
