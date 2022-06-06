@@ -73,6 +73,7 @@ trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 start_music = 'audio/theme_music.mp3'
 start_click_sound = 'sounds/click.wav'
 on_hover_sound = 'sounds/on_hover.wav'
+jumping_sound = 'sounds/jump.wav'
 
 settings_background_image = 'images/settings/settings.background.png'
 settings_title_image = 'images/settings/settings.title.png'
@@ -122,6 +123,7 @@ settings_note_size = (100, 100)
 """
 start_music_channel = 0
 start_click_sound_channel = 1
+jumping_sound_channel = 2
 
 """ game_images : Dict[string, image.pyi]
         Słownik przechowujący obrazki
@@ -354,10 +356,16 @@ class TrzmielSprite(pygame.sprite.Sprite):
             :type self.rect: pygame.Surface
             :ivar self.mode: Kierunek zmiany wielkości (powiększanie[+] , zmniejszanie [-])
             :type self.mode: int
-            :ivar self.grow: Parametr zwiększania co klatkę
+            :ivar self.grow: Parametr unoszenia co klatkę
             :type self.grow: int
-            :ivar self.y_move: Skala powiększenia
+            :ivar self.y_move: odległość uniesienia
             :type self.scale: int
+            :ivar self.y_velocity: prędkość w pionie
+            :type self.scale: int
+            :ivar self.delay: opóżnienie w mozliwości skoku
+            :type self.scale: int
+            :ivar self.y_move: Zmienna zapisująca czy nastapił skok
+            :type self.scale: bool
 
         """
 
@@ -372,8 +380,13 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.mode = 1
         self.y_move = 5
         self.y_velocity = 0
+        self.delay = 0
+        self.if_jumped = False
 
     def gravitation_pull(self):
+        """
+        function gravitational_pull: funckja odpowiedzialna za grawitację - ściąganie trzmiela w dół
+        """
         self.y_velocity += 1.5
 
     def change_image(self):
@@ -387,6 +400,8 @@ class TrzmielSprite(pygame.sprite.Sprite):
     def update(self, keys):
         """
             Funkcja wywoływana co tick zegara, ruch trzmiela góra dół (po osiągnięciu odpowiedniej szybkości zwalniamy)
+            oraz możłiwość skoku trzmiela jeśli został odpalony tryb jednoosobowy,
+            o zadaną wartość jeśli minęły 3 klatki od ostatniego skoku
         """
         self.change_image()
         if not one_player_mode:
@@ -399,9 +414,20 @@ class TrzmielSprite(pygame.sprite.Sprite):
             center = self.rect.center
             self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
         if one_player_mode:
-            if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
-                self.y_velocity = 0
-                self.y_velocity -= 15
+            if not self.if_jumped:
+                """ sprawdzenie czy nastąpił skok """
+                if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
+                    self.y_velocity = 0
+                    self.y_velocity -= 15
+                    pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["jumping_sound"])
+                    pygame.mixer.Channel(jumping_sound_channel).set_volume(0.2)
+                    self.if_jumped = True
+            if self.if_jumped:
+                """ zliczanie opóźnienia """
+                self.delay += 1
+            if self.delay == 3:
+                self.if_jumped = False
+                self.delay = 0
             self.gravitation_pull()
             center = self.rect.center
             self.rect = self.image.get_rect(center=(center[0], center[1] + self.y_velocity))
@@ -645,6 +671,7 @@ if __name__ == "__main__":
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
     game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
     game_sounds["on_hover_sound"] = pygame.mixer.Sound(on_hover_sound)
+    game_sounds["jumping_sound"] = pygame.mixer.Sound(jumping_sound)
 
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
