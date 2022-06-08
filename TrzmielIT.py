@@ -74,6 +74,7 @@ trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 start_music = 'audio/theme_music.mp3'
 start_click_sound = 'sounds/click.wav'
 on_hover_sound = 'sounds/on_hover.wav'
+hit_sound = 'sounds/hit.wav'
 
 settings_background_image = 'images/settings/settings.background.png'
 settings_title_image = 'images/settings/settings.title.png'
@@ -524,9 +525,8 @@ def collision(obstacles,trzmiel_y):
     for obstacle in obstacles :
         if abs(start_trzmiel_position[0] - obstacle.rect.center[0]) < trzmiel_size[0]/2+10:
             if abs(trzmiel_y - obstacle.rect.center[1]) > trzmiel_size[1]/2 + 10 :
-                #dźwięk udareznia
+                pygame.mixer.Channel(start_click_sound_channel).play(game_sounds["hit_sound"])
                 #funkcja wyświetlania sie wyniku po kolizji
-                pass
 
 
 
@@ -662,6 +662,7 @@ if __name__ == "__main__":
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
     game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
     game_sounds["on_hover_sound"] = pygame.mixer.Sound(on_hover_sound)
+    game_sounds["hit_sound"] = pygame.mixer.Sound(hit_sound)
 
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
