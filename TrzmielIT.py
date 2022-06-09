@@ -41,6 +41,8 @@ sounds_on = True
 click = False
 open_settings = False
 start_disappear = False
+one_player_mode = False
+SCORE = 0
 
 """
     Adresy obrazków i dźwięków
@@ -71,9 +73,12 @@ start_inactive_button_image = 'images/start/inactive_button.png'
 
 icon_image = 'images/start/icon.png'
 trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
+number_table = [f'images/numbers/number_{x}.png' for x in range(10)]
 start_music = 'audio/theme_music.mp3'
 start_click_sound = 'sounds/click.wav'
 on_hover_sound = 'sounds/on_hover.wav'
+jumping_sound = 'sounds/jump.wav'
+counter_background = 'images/counter_background.png'
 
 settings_background_image = 'images/settings/settings.background.png'
 settings_title_image = 'images/settings/settings.title.png'
@@ -104,6 +109,10 @@ settings_button_position_1 = (500, 250)
 settings_button_position_2 = (500, 400)
 settings_speaker_position = (250, 200)
 settings_note_position = (250, 350)
+counter_hundreds_position = (48, 50)
+counter_tens_position = (85, 50)
+counter_ones_position = (124, 50)
+counter_background_positions = (10, 10)
 
 """
     Rozmiary obrazków : Tuple[int, int]
@@ -117,19 +126,16 @@ settings_button_pressed_size = (100, 100)
 settings_button_not_pressed_size = (100, 100)
 settings_speaker_size = (100, 100)
 settings_note_size = (100, 100)
-inactive_button_size = (260,120)
+inactive_button_size = (260, 120)
+number_size = (30, 38)
+counter_background_size = (150, 85)
 
 """
     Nr kanałów dla poszczególnych dźwięków
 """
 start_music_channel = 0
 start_click_sound_channel = 1
-
-"""
-    Nr kanałów dla poszczególnych dźwięków
-"""
-start_music_channel = 0
-start_click_sound_channel = 1
+jumping_sound_channel = 2
 
 """ game_images : Dict[string, image.pyi]
         Słownik przechowujący obrazki
@@ -351,6 +357,103 @@ def settings_window():
     display_screen_window.blit(game_images['settings_note'], settings_note_position)
 
 
+class Numbers(pygame.sprite.Sprite):
+    """
+        :class Numbers: Klasa pochodna od klasy Sprite odpowiedzialna za utworzenie spriteów cyfr.
+            :ivar self.number: Wyświetlana cyfra
+            :type self.number: int
+            :ivar self.images: Lista grafik numerów
+            :type self.images: List[image.pyi]
+            :ivar self.image: Aktualna grafika cyfry
+            :type self.image: image.pyi
+            :ivar self.rect: Prostokąt do wyświetlania cyfry
+            :type self.rect: pygame.Surface
+
+    """
+
+    def __init__(self, center, images):
+        super().__init__()
+        self.number = 0
+        self.images = images
+        self.image = images[self.number]
+        self.rect = self.image.get_rect(center=center)
+
+
+class ScoreCounterONES(Numbers):
+    """
+        :class ScoreCounterONES: Klasa pochodna od klasy Numbers,
+        odpowiadzialna za wyświetlanie cyfr jedności wyniku.
+    """
+
+    def __init__(self, center, images):
+        super().__init__(center, images)
+
+    def update(self, score):
+        """
+            :function update: Funkcja dziedziczona po pygame.sprite.Sprite, wywoływana co tyknięcie zegara,
+            odpowiedzialna za wydobywanie cyfry jedności ze zmiennej SCORE
+        """
+        if score < 10:
+            self.rect = self.image.get_rect(center=(85, 50))
+        if 10 <= score < 100:
+            self.rect = self.image.get_rect(center=(105, 50))
+        if 100 <= score < 1000:
+            self.rect = self.image.get_rect(center=(124, 50))
+        self.number = score % 10
+        self.image = self.images[self.number]
+        self.rect = self.image.get_rect(center=self.rect.center)
+
+
+class ScoreCounterTENS(Numbers):
+    """
+        :class ScoreCounterTENS: Klasa pochodna od klasy Numbers,
+        odpowiadzialna za wyświetlanie cyfr dziesiątek wyniku.
+    """
+
+    def __init__(self, center, images):
+        super().__init__(center, images)
+
+    def update(self, score):
+        """
+            :function update: Funkcja dziedziczona po pygame.sprite.Sprite, wywoływana co tyknięcie zegara,
+            odpowiedzialna za wydobywanie cyfry dziesiątek ze zmiennej SCORE
+        """
+        if 10 <= score < 100:
+            self.rect = self.image.get_rect(center=(67, 50))
+            ones = score % 10
+            self.number = int((score - ones) / 10)
+            self.image = self.images[self.number]
+            self.rect = self.image.get_rect(center=self.rect.center)
+        if 100 <= score < 1000:
+            self.rect = self.image.get_rect(center=(85, 50))
+            ones = score % 10
+            self.number = int(((score - ones) % 100) / 10)
+            self.image = self.images[self.number]
+            self.rect = self.image.get_rect(center=self.rect.center)
+
+
+class ScoreCounterHUNDREDS(Numbers):
+    """
+        :class ScoreCounterHUNDREDS: Klasa pochodna od klasy Numbers,
+        odpowiadzialna za wyświetlanie cyfr setek wyniku.
+    """
+
+    def __init__(self, center, images):
+        super().__init__(center, images)
+
+    def update(self, score):
+        """
+            :function update: Funkcja dziedziczona po pygame.sprite.Sprite, wywoływana co tyknięcie zegara,
+            odpowiedzialna za wydobywanie cyfry setek ze zmiennej SCORE
+        """
+        if 100 <= score < 1000:
+            ones = score % 10
+            tens = int(((score - ones) % 100) / 10)
+            self.number = int((score - ((tens * 10) + ones)) / 100)
+            self.image = self.images[self.number]
+            self.rect = self.image.get_rect(center=self.rect.center)
+
+
 class TrzmielSprite(pygame.sprite.Sprite):
     """
         :class TrzmielSprite: Klasa odpowiedzialna za utworzenie i animacje trzmiela.
@@ -362,10 +465,16 @@ class TrzmielSprite(pygame.sprite.Sprite):
             :type self.rect: pygame.Surface
             :ivar self.mode: Kierunek zmiany wielkości (powiększanie[+] , zmniejszanie [-])
             :type self.mode: int
-            :ivar self.grow: Parametr zwiększania co klatkę
+            :ivar self.grow: Parametr unoszenia co klatkę
             :type self.grow: int
-            :ivar self.y_move: Skala powiększenia
+            :ivar self.y_move: odległość uniesienia
             :type self.scale: int
+            :ivar self.y_velocity: prędkość w pionie
+            :type self.scale: int
+            :ivar self.delay: opóżnienie w mozliwości skoku
+            :type self.scale: int
+            :ivar self.y_move: Zmienna zapisująca czy nastapił skok
+            :type self.scale: bool
 
         """
 
@@ -379,6 +488,15 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.grow = 0
         self.mode = 1
         self.y_move = 5
+        self.y_velocity = 0
+        self.delay = 0
+        self.if_jumped = False
+
+    def gravitation_pull(self):
+        """
+        function gravitational_pull: funckja odpowiedzialna za grawitację - ściąganie trzmiela w dół
+        """
+        self.y_velocity += 1.5
 
     def change_image(self):
         """
@@ -388,19 +506,40 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.image = self.images[self.current_index]
         self.rect = self.image.get_rect(center=self.rect.center)
 
-    def update(self):
+    def update(self, keys):
         """
             Funkcja wywoływana co tick zegara, ruch trzmiela góra dół (po osiągnięciu odpowiedniej szybkości zwalniamy)
+            oraz możłiwość skoku trzmiela jeśli został odpalony tryb jednoosobowy,
+            o zadaną wartość jeśli minęły 3 klatki od ostatniego skoku
         """
         self.change_image()
-        if self.grow > self.y_move:
-            self.mode = -1
-        if self.grow < -self.y_move:
-            self.mode = 1
-            """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
-        self.grow += 1 * self.mode
-        center = self.rect.center
-        self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
+        if not one_player_mode:
+            if self.grow > self.y_move:
+                self.mode = -1
+            if self.grow < -self.y_move:
+                self.mode = 1
+                """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
+            self.grow += 1 * self.mode
+            center = self.rect.center
+            self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
+        if one_player_mode:
+            if not self.if_jumped:
+                """ sprawdzenie czy nastąpił skok """
+                if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
+                    self.y_velocity = 0
+                    self.y_velocity -= 15
+                    pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["jumping_sound"])
+                    pygame.mixer.Channel(jumping_sound_channel).set_volume(0.2)
+                    self.if_jumped = True
+            if self.if_jumped:
+                """ zliczanie opóźnienia """
+                self.delay += 1
+            if self.delay == 3:
+                self.if_jumped = False
+                self.delay = 0
+            self.gravitation_pull()
+            center = self.rect.center
+            self.rect = self.image.get_rect(center=(center[0], center[1] + self.y_velocity))
 
 
 class AnimateSprite(pygame.sprite.Sprite):
@@ -516,8 +655,9 @@ def move_sprite_to(sprite, destination, speed):
 
 
 def start_1_player_mode():
-    global start_disappear
+    global start_disappear, one_player_mode
     start_disappear = True
+    one_player_mode = True
 
 
 def start_window():
@@ -549,6 +689,14 @@ def start_window():
     trzmiel = TrzmielSprite(start_trzmiel_position, game_images['trzmiel'])
     trzmiel_group = pygame.sprite.Group(trzmiel)
 
+    """ Utowrzenie liczników """
+    ones = ScoreCounterONES(counter_ones_position, game_images['numbers'])
+    tens = ScoreCounterTENS(counter_tens_position, game_images['numbers'])
+    hundreds = ScoreCounterHUNDREDS(counter_hundreds_position, game_images['numbers'])
+    counter_group_ones = pygame.sprite.Group(ones)
+    counter_group_tens = pygame.sprite.Group(tens)
+    counter_group_hundreds = pygame.sprite.Group(hundreds)
+    """ Utworzenie animacji tytułu """
     title_animation = AnimateSprite(animation_title_position,
                                     pygame.image.load(start_title_image), 40)
     all_sprites.append(title_animation)
@@ -565,7 +713,10 @@ def start_window():
     inactive_acc = 0
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
-        global click, start_disappear
+        global click, start_disappear, SCORE
+        if SCORE > 999:
+            SCORE = 0
+        keys = pygame.key.get_pressed()
         click = False
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
@@ -585,8 +736,18 @@ def start_window():
         group_button_settings.update()
         group_button_settings.draw(display_screen_window)
         buttons.draw(display_screen_window)
-        trzmiel_group.update()
+        trzmiel_group.update(keys)
         trzmiel_group.draw(display_screen_window)
+        if one_player_mode:
+            display_screen_window.blit(game_images['counter_background'], counter_background_positions)
+            counter_group_ones.update(SCORE)
+            counter_group_ones.draw(display_screen_window)
+            if SCORE > 9:
+                counter_group_tens.update(SCORE)
+                counter_group_tens.draw(display_screen_window)
+            if SCORE > 99:
+                counter_group_hundreds.update(SCORE)
+                counter_group_hundreds.draw(display_screen_window)
         if start_disappear:
             for sprite in all_sprites:
                 sprite.swipe_out()
@@ -600,11 +761,14 @@ def start_window():
             buttons.update()
 
         """ Nieaktywny guzik """
-        if (click and check_if_clicked(pygame.mouse.get_pos(),(start_button_2_player_position[0] - 398/2,start_button_2_player_position[0]+398/2,start_button_2_player_position[1]-85/2,start_button_2_player_position[1]+85/2)) or (inactive_acc > 0 and inactive_acc < 40)):
+        if (click and check_if_clicked(pygame.mouse.get_pos(), (
+                start_button_2_player_position[0] - 398 / 2, start_button_2_player_position[0] + 398 / 2,
+                start_button_2_player_position[1] - 85 / 2, start_button_2_player_position[1] + 85 / 2)) or (
+                0 < inactive_acc < 40)):
             display_screen_window.blit(game_images['inactive_button'], pygame.mouse.get_pos())
-            inactive_acc +=1
+            inactive_acc += 1
         else:
-            inactive_acc =0
+            inactive_acc = 0
 
         """ Uaktualnienie widoku """
         pygame.display.flip()
@@ -638,25 +802,25 @@ if __name__ == "__main__":
         pygame.image.load(settings_speaker_image).convert_alpha(), settings_speaker_size)
     game_images['settings_note'] = pygame.transform.scale(
         pygame.image.load(settings_note_image).convert_alpha(), settings_note_size)
-
     game_images['inactive_button'] = pygame.transform.scale(
         pygame.image.load(start_inactive_button_image).convert_alpha(), inactive_button_size)
-
-
     game_images['trzmiel'] = [
         pygame.transform.smoothscale(pygame.image.load(trzmiel_images[x]).convert_alpha(), trzmiel_size) for x in
         range(4)]
     game_images['icon'] = pygame.transform.smoothscale(pygame.image.load(icon_image).convert_alpha(), icon_size)
-
+    game_images['numbers'] = [
+        pygame.transform.smoothscale(pygame.image.load(number_table[x]).convert_alpha(), number_size) for x in
+        range(10)]
+    game_images['counter_background'] = pygame.transform.scale(
+        pygame.image.load(counter_background).convert_alpha(), counter_background_size)
     """ Przypisanie dźwięków do game_sounds na podstawie ich ścieżek """
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
     game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
     game_sounds["on_hover_sound"] = pygame.mixer.Sound(on_hover_sound)
+    game_sounds["jumping_sound"] = pygame.mixer.Sound(jumping_sound)
 
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
 
     """ Okno startowe """
     start_window()
-
-
