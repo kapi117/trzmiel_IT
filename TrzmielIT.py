@@ -246,16 +246,16 @@ class ButtonSprite(pygame.sprite.Sprite):
                              src_height - self.rect.centery)
         if closest_border == self.rect.centerx:
             """ najbliżej w lewo """
-            self.place_to_move = (-self.image.get_width() / 2 - 5, self.rect.centery)
+            self.place_to_move = (-self.image.get_width(), self.rect.centery)
         elif closest_border == src_width - self.rect.centerx:
             """ najbliżej w prawo"""
-            self.place_to_move = (src_width + self.image.get_width() / 2 + 5, self.rect.centery)
+            self.place_to_move = (src_width + self.image.get_width(), self.rect.centery)
         elif closest_border == self.rect.centery:
             """ najbliżej w górę """
-            self.place_to_move = (self.rect.centerx, -self.image.get_height() / 2 - 5)
+            self.place_to_move = (self.rect.centerx, -self.image.get_height())
         else:
             """ najbliżej w dół """
-            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height() / 2 + 5)
+            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height())
 
     def set_on_click(self, func):
         """
@@ -593,16 +593,16 @@ class AnimateSprite(pygame.sprite.Sprite):
                              src_height - self.rect.centery)
         if closest_border == self.rect.centerx:
             """ najbliżej w lewo """
-            self.place_to_move = (-self.image.get_width() / 2 - 10, self.rect.centery)
+            self.place_to_move = (-self.image.get_width(), self.rect.centery)
         elif closest_border == src_width - self.rect.centerx:
             """ najbliżej w prawo"""
-            self.place_to_move = (src_width + self.image.get_width() / 2 + 10, self.rect.centery)
+            self.place_to_move = (src_width + self.image.get_width(), self.rect.centery)
         elif closest_border == self.rect.centery:
             """ najbliżej w górę """
-            self.place_to_move = (self.rect.centerx, -self.image.get_height() / 2 - 10)
+            self.place_to_move = (self.rect.centerx, -self.image.get_height())
         else:
             """ najbliżej w dół """
-            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height() / 2 + 10)
+            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height())
 
     def update(self):
         """ Function update: Funkcja odpowiedzzialna za powiększanie lub zmneijszanie obrazku co skok zegara """
@@ -639,11 +639,18 @@ def move_sprite_to(sprite, destination, speed):
     center = sprite[0].rect.center
     to_travel = (destination[0] - center[0], destination[1] - center[1])
     if to_travel != (0, 0):
+        print(to_travel, sprite.__str__())
         """ Jeśli nie jest na odpowiednim miejscu to przesun w odpowiedni sposob"""
         if to_travel[0] == 0:
-            movement = [0, speed * to_travel[1] / abs(to_travel[1])]
+            if speed < abs(to_travel[1]):
+                movement = [0, speed * to_travel[1] / abs(to_travel[1])]
+            else:
+                movement = to_travel
         elif to_travel[1] == 0:
-            movement = [speed * to_travel[0] / abs(to_travel[0]), 0]
+            if speed < abs(to_travel[0]):
+                movement = [speed * to_travel[0] / abs(to_travel[0]), 0]
+            else:
+                movement = to_travel
         else:
             closer = min(to_travel)
             movement = [speed * to_travel[0] / abs(closer), speed * to_travel[1] / abs(closer)]
@@ -655,9 +662,8 @@ def move_sprite_to(sprite, destination, speed):
 
 
 def start_1_player_mode():
-    global start_disappear, one_player_mode
+    global start_disappear
     start_disappear = True
-    one_player_mode = True
 
 
 def start_window():
@@ -713,7 +719,7 @@ def start_window():
     inactive_acc = 0
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
-        global click, start_disappear, SCORE
+        global click, start_disappear, SCORE, one_player_mode
         if SCORE > 999:
             SCORE = 0
         keys = pygame.key.get_pressed()
@@ -759,6 +765,14 @@ def start_window():
             buttons_settings.draw(display_screen_window)
         else:
             buttons.update()
+
+        """ Sprawdzam czy wszystkie obrazki wysunięte """
+        end_start = True
+        for sprite in all_sprites:
+            end_start = end_start and sprite.disappeared
+        """ Jeśli wszystkie zniknęły to mamy tryb jednoosobowy """
+        if end_start:
+            one_player_mode = True
 
         """ Nieaktywny guzik """
         if (click and check_if_clicked(pygame.mouse.get_pos(), (
