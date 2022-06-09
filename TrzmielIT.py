@@ -506,14 +506,14 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.image = self.images[self.current_index]
         self.rect = self.image.get_rect(center=self.rect.center)
 
-    def update(self, keys):
+    def update(self, keys, move=False):
         """
             Funkcja wywoływana co tick zegara, ruch trzmiela góra dół (po osiągnięciu odpowiedniej szybkości zwalniamy)
             oraz możłiwość skoku trzmiela jeśli został odpalony tryb jednoosobowy,
             o zadaną wartość jeśli minęły 3 klatki od ostatniego skoku
         """
         self.change_image()
-        if not one_player_mode:
+        if not move:
             if self.grow > self.y_move:
                 self.mode = -1
             if self.grow < -self.y_move:
@@ -522,7 +522,7 @@ class TrzmielSprite(pygame.sprite.Sprite):
             self.grow += 1 * self.mode
             center = self.rect.center
             self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
-        if one_player_mode:
+        else:
             if not self.if_jumped:
                 """ sprawdzenie czy nastąpił skok """
                 if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
@@ -673,9 +673,12 @@ def start_1_player_mode(acc=0.0, main_screen_motion=0.0, trzmiel_group=None):
         counter_group_ones = pygame.sprite.Group(ones)
         counter_group_tens = pygame.sprite.Group(tens)
         counter_group_hundreds = pygame.sprite.Group(hundreds)
+        move_trzmiel = False
         while True:
             global SCORE, click
             keys = pygame.key.get_pressed()
+            if not move_trzmiel and (keys[K_SPACE] or keys[K_UP]):
+                move_trzmiel = True
             click = False
             for event in pygame.event.get():
                 if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
@@ -692,7 +695,7 @@ def start_1_player_mode(acc=0.0, main_screen_motion=0.0, trzmiel_group=None):
                     main_screen_motion = 0
                 display_screen_window.blit(game_images['start_background'], (-main_screen_motion, 0))
             """ Trzmiel """
-            trzmiel_group.update(keys)
+            trzmiel_group.update(keys, move_trzmiel)
             trzmiel_group.draw(display_screen_window)
             if SCORE > 999:
                 SCORE = 0
