@@ -662,9 +662,52 @@ def move_sprite_to(sprite, destination, speed):
         return True
 
 
-def start_1_player_mode():
+def start_1_player_mode(acc=0.0, main_screen_motion=0.0, trzmiel_group=None):
     global start_disappear
     start_disappear = True
+    if one_player_mode:
+        """ Utworzenie liczników """
+        ones = ScoreCounterONES(counter_ones_position, game_images['numbers'])
+        tens = ScoreCounterTENS(counter_tens_position, game_images['numbers'])
+        hundreds = ScoreCounterHUNDREDS(counter_hundreds_position, game_images['numbers'])
+        counter_group_ones = pygame.sprite.Group(ones)
+        counter_group_tens = pygame.sprite.Group(tens)
+        counter_group_hundreds = pygame.sprite.Group(hundreds)
+        while True:
+            global SCORE, click
+            keys = pygame.key.get_pressed()
+            click = False
+            for event in pygame.event.get():
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == MOUSEBUTTONUP:
+                    click = True
+            """ Animacja tła oraz umiejscowienie tytułu """
+            acc += time_clock.tick(FPS)
+            while acc >= 1:
+                acc -= 1
+                main_screen_motion += 0.1
+                if main_screen_motion >= 3202.0:
+                    main_screen_motion = 0
+                display_screen_window.blit(game_images['start_background'], (-main_screen_motion, 0))
+            """ Trzmiel """
+            trzmiel_group.update(keys)
+            trzmiel_group.draw(display_screen_window)
+            if SCORE > 999:
+                SCORE = 0
+            display_screen_window.blit(game_images['counter_background'], counter_background_positions)
+            counter_group_ones.update(SCORE)
+            counter_group_ones.draw(display_screen_window)
+            if SCORE > 9:
+                counter_group_tens.update(SCORE)
+                counter_group_tens.draw(display_screen_window)
+            if SCORE > 99:
+                counter_group_hundreds.update(SCORE)
+                counter_group_hundreds.draw(display_screen_window)
+            """ Uaktualnienie widoku """
+            pygame.display.flip()
+            time_clock.tick(FPS)
 
 
 def start_window():
@@ -679,30 +722,23 @@ def start_window():
     """
     all_sprites = []
     button_1_player = ButtonSprite(game_images['start_button_1_player'], start_button_1_player_position)
-    button_1_player.set_on_click(start_1_player_mode)
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
-    button_settings.set_on_click(toggle_settings_window)
     all_sprites.extend([button_1_player, button_2_player, button_settings])
     button_sound = ButtonSprite(game_images['settings_button_not_pressed'], settings_button_position_1, sounds_on)
     button_music = ButtonSprite(game_images['settings_button_not_pressed'], settings_button_position_2, music_on)
     """ Przypisanie reakcji na nacisniecie """
+    button_settings.set_on_click(toggle_settings_window)
     button_music.set_image_clicked(game_images['settings_button_pressed'])
     button_sound.set_image_clicked(game_images['settings_button_pressed'])
     button_music.set_on_click(toggle_music)
     button_sound.set_on_click(toggle_sounds)
+    button_1_player.set_on_click(start_1_player_mode)
 
     """ Utworzenie trzmiela """
     trzmiel = TrzmielSprite(start_trzmiel_position, game_images['trzmiel'])
     trzmiel_group = pygame.sprite.Group(trzmiel)
 
-    """ Utowrzenie liczników """
-    ones = ScoreCounterONES(counter_ones_position, game_images['numbers'])
-    tens = ScoreCounterTENS(counter_tens_position, game_images['numbers'])
-    hundreds = ScoreCounterHUNDREDS(counter_hundreds_position, game_images['numbers'])
-    counter_group_ones = pygame.sprite.Group(ones)
-    counter_group_tens = pygame.sprite.Group(tens)
-    counter_group_hundreds = pygame.sprite.Group(hundreds)
     """ Utworzenie animacji tytułu """
     title_animation = AnimateSprite(animation_title_position,
                                     pygame.image.load(start_title_image), 40)
@@ -721,8 +757,6 @@ def start_window():
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
         global click, start_disappear, SCORE, one_player_mode
-        if SCORE > 999:
-            SCORE = 0
         keys = pygame.key.get_pressed()
         click = False
         for event in pygame.event.get():
@@ -745,16 +779,6 @@ def start_window():
         buttons.draw(display_screen_window)
         trzmiel_group.update(keys)
         trzmiel_group.draw(display_screen_window)
-        if one_player_mode:
-            display_screen_window.blit(game_images['counter_background'], counter_background_positions)
-            counter_group_ones.update(SCORE)
-            counter_group_ones.draw(display_screen_window)
-            if SCORE > 9:
-                counter_group_tens.update(SCORE)
-                counter_group_tens.draw(display_screen_window)
-            if SCORE > 99:
-                counter_group_hundreds.update(SCORE)
-                counter_group_hundreds.draw(display_screen_window)
         if start_disappear:
             for sprite in all_sprites:
                 sprite.swipe_out()
@@ -774,6 +798,7 @@ def start_window():
         """ Jeśli wszystkie zniknęły to mamy tryb jednoosobowy """
         if end_start:
             one_player_mode = True
+            break
 
         """ Nieaktywny guzik """
         if (click and check_if_clicked(pygame.mouse.get_pos(), (
@@ -788,6 +813,7 @@ def start_window():
         """ Uaktualnienie widoku """
         pygame.display.flip()
         time_clock.tick(FPS)
+    return acc, main_screen_motion, trzmiel_group
 
 
 if __name__ == "__main__":
@@ -838,4 +864,8 @@ if __name__ == "__main__":
     pygame.display.set_icon(game_images['icon'])
 
     """ Okno startowe """
-    start_window()
+    acc, main_screen_motion, trzmiel_group = start_window()
+
+    """ Gra jednoosobowa """
+    if one_player_mode:
+        start_1_player_mode(acc, main_screen_motion, trzmiel_group)
