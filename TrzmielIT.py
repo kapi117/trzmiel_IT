@@ -639,7 +639,6 @@ def move_sprite_to(sprite, destination, speed):
     center = sprite[0].rect.center
     to_travel = (destination[0] - center[0], destination[1] - center[1])
     if to_travel != (0, 0):
-        print(to_travel, sprite.__str__())
         """ Jeśli nie jest na odpowiednim miejscu to przesun w odpowiedni sposob"""
         if to_travel[0] == 0:
             if speed < abs(to_travel[1]):
@@ -653,7 +652,9 @@ def move_sprite_to(sprite, destination, speed):
                 movement = to_travel
         else:
             closer = min(to_travel)
-            movement = [speed * to_travel[0] / abs(closer), speed * to_travel[1] / abs(closer)]
+            speed_x = (speed if speed < abs(to_travel[0]) else to_travel[0])
+            speed_y = (speed if speed < abs(to_travel[1]) else to_travel[1])
+            movement = [speed_x * to_travel[0] / abs(closer), speed_y * to_travel[1] / abs(closer)]
         """ Przypisz środek po przesunięciu """
         sprite[0].rect = sprite[0].image.get_rect(center=(center[0] + movement[0], center[1] + movement[1]))
         return False
