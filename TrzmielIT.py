@@ -118,7 +118,7 @@ settings_button_pressed_size = (100, 100)
 settings_button_not_pressed_size = (100, 100)
 settings_speaker_size = (100, 100)
 settings_note_size = (100, 100)
-inactive_button_size = (260,120)
+inactive_button_size = (260, 120)
 
 """
     Nr kanałów dla poszczególnych dźwięków
@@ -126,11 +126,6 @@ inactive_button_size = (260,120)
 start_music_channel = 0
 start_click_sound_channel = 1
 
-"""
-    Nr kanałów dla poszczególnych dźwięków
-"""
-start_music_channel = 0
-start_click_sound_channel = 1
 
 """ game_images : Dict[string, image.pyi]
         Słownik przechowujący obrazki
@@ -540,7 +535,7 @@ class Obstacle(pygame.sprite.Sprite):
         if center[0] == -200:
             """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
              oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów"""
-            self.rect = self.image.get_rect(center=(1000, random.randrange(60,540)))
+            self.rect = self.image.get_rect(center=(1000, random.randrange(60, 540)))
 
 
 def start_window():
