@@ -505,20 +505,20 @@ class Highscores_list():
         """
         game_highscores.truncate(0)
 
-class Obstacle(pygame.sprite.Sprite):
-    def __init__(self, pos ,picture_path):
-        super().__init__()
-        self.pos = pos
-        self.image = pygame.image.load(picture_path)
-        self.rect = self.image.get_rect(center=self.pos)
-
-    """funkcja update powoduje pomniejszenie położenia x przeszkody o 10 pikseli zgodnie z zegarem"""
-    """ adres rury został dodany jako :game_obstacle_image: string """
-    def update(self):
-        center = self.rect.center
-        self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
-        """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
-        if center[0] == -200:
-            """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
-             oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów"""
-            self.rect = self.image.get_rect(center=(1000, random.randrange(60,540)))
+# class Obstacle(pygame.sprite.Sprite):
+#     def __init__(self, pos ,picture_path):
+#         super().__init__()
+#         self.pos = pos
+#         self.image = pygame.image.load(picture_path)
+#         self.rect = self.image.get_rect(center=self.pos)
+#
+#     """funkcja update powoduje pomniejszenie położenia x przeszkody o 10 pikseli zgodnie z zegarem"""
+#     """ adres rury został dodany jako :game_obstacle_image: string  """
+#     def update(self):
+#         center = self.rect.center
+#         self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
+#         """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
+#         if center[0] == -200:
+#             """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
+#              oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów"""
+#             self.rect = self.image.get_rect(center=(1000, random.randrange(60,540)))
