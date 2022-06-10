@@ -40,6 +40,7 @@ music_on = True
 sounds_on = True
 click = False
 open_settings = False
+open_results = False
 start_disappear = False
 one_player_mode = False
 SCORE = 0
@@ -86,6 +87,8 @@ settings_button_pressed_image = 'images/settings/Nacisniety przycisk.png'
 settings_button_not_pressed_image = 'images/settings/przycisk.png'
 settings_speaker_image = 'images/settings/speaker.png'
 settings_note_image = 'images/settings/note.png'
+
+results_background_image = 'images/results/background_with_text.png'
 """
     Pozycje obrazków
     ----------------
@@ -113,6 +116,7 @@ counter_hundreds_position = (48, 50)
 counter_tens_position = (85, 50)
 counter_ones_position = (124, 50)
 counter_background_positions = (10, 10)
+results_background_position = (208, 108)
 
 """
     Rozmiary obrazków : Tuple[int, int]
@@ -360,6 +364,10 @@ def settings_window():
     display_screen_window.blit(game_images['settings_note'], settings_note_position)
 
 
+def results_window():
+    display_screen_window.blit(game_images['results_background'], results_background_position)
+
+
 class Numbers(pygame.sprite.Sprite):
     """
         :class Numbers: Klasa pochodna od klasy Sprite odpowiedzialna za utworzenie spriteów cyfr.
@@ -522,7 +530,7 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.change_image()
         if not move:
             if self.collision:
-                if self.rect.centery < src_height - self.image.get_height()/3:
+                if self.rect.centery < src_height - self.image.get_height() / 3:
                     """ animacja kolizji """
                     self.rotation += 10
                     self.gravitation_pull()
@@ -530,6 +538,8 @@ class TrzmielSprite(pygame.sprite.Sprite):
                     self.rect = self.image.get_rect(center=(center[0], center[1] + self.y_velocity))
                 else:
                     self.stop = True
+                    global open_results
+                    open_results = True
             else:
                 """ animacja latania góra dół na oknie startowym i w oczekiwaniu na start """
                 if self.grow > self.y_move:
@@ -726,6 +736,10 @@ def start_1_player_mode(**info):
             if SCORE > 99:
                 counter_group_hundreds.update(SCORE)
                 counter_group_hundreds.draw(display_screen_window)
+
+            if open_results:
+                results_window()
+
             """ Uaktualnienie widoku """
             pygame.display.flip()
             time_clock.tick(FPS)
@@ -873,6 +887,8 @@ if __name__ == "__main__":
         range(10)]
     game_images['counter_background'] = pygame.transform.scale(
         pygame.image.load(counter_background).convert_alpha(), counter_background_size)
+    game_images['results_background'] = pygame.image.load(results_background_image).convert_alpha()
+
     """ Przypisanie dźwięków do game_sounds na podstawie ich ścieżek """
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
     game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
