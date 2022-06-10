@@ -236,27 +236,6 @@ class ButtonSprite(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(image_to_show, image_to_show.get_size())
         self.rect = self.image.get_rect(center=self.rect.center)
 
-    def swipe_out(self):
-        """
-        Funkcja ustawiająca on_screen na False oraz obliczająca pożądane miejsce wysunięcia (do najbliższej krawędzi)
-        """
-        self.on_screen = False
-        """ do której krawędzi najbliżej """
-        closest_border = min(self.rect.centerx, src_width - self.rect.centerx, self.rect.centery,
-                             src_height - self.rect.centery)
-        if closest_border == self.rect.centerx:
-            """ najbliżej w lewo """
-            self.place_to_move = (-self.image.get_width(), self.rect.centery)
-        elif closest_border == src_width - self.rect.centerx:
-            """ najbliżej w prawo"""
-            self.place_to_move = (src_width + self.image.get_width(), self.rect.centery)
-        elif closest_border == self.rect.centery:
-            """ najbliżej w górę """
-            self.place_to_move = (self.rect.centerx, -self.image.get_height())
-        else:
-            """ najbliżej w dół """
-            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height())
-
     def set_on_click(self, func):
         """
         :function set_on_click: Funkcja przypisująca funkcję do uruchomienia przy naciśnięciu przycisku
@@ -298,6 +277,30 @@ class ButtonSprite(pygame.sprite.Sprite):
         else:
             """ jeśli nie ma być na ekranie """
             self.disappeared = move_sprite_to([self], self.place_to_move, self.disappear_speed)
+
+
+def swipe_out(sprites):
+    """
+    Funkcja ustawiająca on_screen na False oraz obliczająca pożądane miejsce wysunięcia (do najbliższej krawędzi)
+    :param sprites: Lista Sprite do wysunięcia
+    """
+    for sprite in sprites:
+        sprite.on_screen = False
+        """ do której krawędzi najbliżej """
+        closest_border = min(sprite.rect.centerx, src_width - sprite.rect.centerx, sprite.rect.centery,
+                             src_height - sprite.rect.centery)
+        if closest_border == sprite.rect.centerx:
+            """ najbliżej w lewo """
+            sprite.place_to_move = (-sprite.image.get_width(), sprite.rect.centery)
+        elif closest_border == src_width - sprite.rect.centerx:
+            """ najbliżej w prawo"""
+            sprite.place_to_move = (src_width + sprite.image.get_width(), sprite.rect.centery)
+        elif closest_border == sprite.rect.centery:
+            """ najbliżej w górę """
+            sprite.place_to_move = (sprite.rect.centerx, -sprite.image.get_height())
+        else:
+            """ najbliżej w dół """
+            sprite.place_to_move = (sprite.rect.centerx, src_height + sprite.image.get_height())
 
 
 def toggle_music():
@@ -583,27 +586,6 @@ class AnimateSprite(pygame.sprite.Sprite):
         self.place_to_move = center
         self.disappear_speed = 10
 
-    def swipe_out(self):
-        """
-        Funkcja ustawiająca on_screen na False oraz obliczająca pożądane miejsce wysunięcia (do najbliższej krawędzi)
-        """
-        self.on_screen = False
-        """ do której krawędzi najbliżej """
-        closest_border = min(self.rect.centerx, src_width - self.rect.centerx, self.rect.centery,
-                             src_height - self.rect.centery)
-        if closest_border == self.rect.centerx:
-            """ najbliżej w lewo """
-            self.place_to_move = (-self.image.get_width(), self.rect.centery)
-        elif closest_border == src_width - self.rect.centerx:
-            """ najbliżej w prawo"""
-            self.place_to_move = (src_width + self.image.get_width(), self.rect.centery)
-        elif closest_border == self.rect.centery:
-            """ najbliżej w górę """
-            self.place_to_move = (self.rect.centerx, -self.image.get_height())
-        else:
-            """ najbliżej w dół """
-            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height())
-
     def update(self):
         """ Function update: Funkcja odpowiedzzialna za powiększanie lub zmneijszanie obrazku co skok zegara """
         if self.on_screen:
@@ -799,8 +781,7 @@ def start_window():
         trzmiel_group.update(keys)
         trzmiel_group.draw(display_screen_window)
         if start_disappear:
-            for sprite in all_sprites:
-                sprite.swipe_out()
+            swipe_out(all_sprites)
             start_disappear = False
         if open_settings:
             """ jeśli okienko ma być otwarte narysuj je i załącz przyciski od ustawień """
@@ -817,7 +798,7 @@ def start_window():
         """ Jeśli wszystkie zniknęły to mamy tryb jednoosobowy """
         if end_start:
             one_player_mode = True
-            break
+            return acc, main_screen_motion, trzmiel_group
 
         """ Nieaktywny guzik """
         if (click and check_if_clicked(pygame.mouse.get_pos(), (
@@ -832,7 +813,6 @@ def start_window():
         """ Uaktualnienie widoku """
         pygame.display.flip()
         time_clock.tick(FPS)
-    return acc, main_screen_motion, trzmiel_group
 
 
 if __name__ == "__main__":
