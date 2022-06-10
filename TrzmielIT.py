@@ -3,7 +3,7 @@ from typing import Tuple
 import pygame
 from pygame.locals import *
 import sys
-
+import random
 """
     TrzmielIT
     =========
@@ -44,6 +44,8 @@ sounds_on = True
         Adres obrazku przycisku gry dwuosobowej
     start_button_settings_image : string
         Adres obrazku przycisku ustawień
+    game_obstacle_image : string
+        Adres obrazku przeszkody
     start_music : string
         Adres dźwięku melodii startowej
     start_click_sound : string
@@ -54,6 +56,7 @@ start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
+game_obstacle_image = 'images/game/rura.png'
 trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 start_music = 'audio/theme_music.mp3'
 start_click_sound = 'sounds/click.wav'
@@ -454,11 +457,18 @@ if __name__ == "__main__":
     """ Okno startowe """
     start_window()
 
-"""Otwieranie pliku do edycji"""
+"""
+ :game_highscores: Obiekt typu file odczytujący plik txt z wynikami
+"""
 game_highscores = open(r"data/highscores.txt", 'r+')
 
 """Klasa umożliwiająca zapisywanie i wyświetlanie 10 najlepszych wyników"""
-class highscores_list():
+class Highscores_list():
+    """
+    :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
+    :ivar self.best_ten: Lista przechowująca 10 najlepszych wyników
+    :type self.best_ten: List[integer]
+    """
 
     def __init__(self, list, game_highscores):
         self.best_ten = []
@@ -469,18 +479,30 @@ class highscores_list():
                     self.best_ten.append(line.strip())
             elif i > 9:
                 break
-    """Sprawdzenie czy wynik nie jest wyższy od poprzednich"""
+
     def update(self,new_score):
+        """
+        :function update: Sprawdza czy nowy wynik nie jest wyższy od któregoś z najlepszych i jeśli tak to go wpisuje
+        :param new_score: Nowy osiągnięty wynik
+        :type new_score: integer
+        """
         for i,elem in self.best_ten:
             if new_score > elem:
                 lower_scores=[x for x in self.best_ten[i:8]]
                 self.best_ten[i] = new_score
                 self.best_ten += lower_scores
-    """Odczyt 10 najlepszych wyników"""
+
     def read(self):
+        """
+        :function read: Odczyt 10 najlepszych wyników
+        """
         return self.best_ten
-    """Reset listy wyników"""
+
+
     def reset(self):
+        """
+        :function reset: Wymazanie zawartości pliku z wynikami
+        """
         game_highscores.truncate(0)
 
 class Obstacle(pygame.sprite.Sprite):
@@ -490,3 +512,13 @@ class Obstacle(pygame.sprite.Sprite):
         self.image = pygame.image.load(picture_path)
         self.rect = self.image.get_rect(center=self.pos)
 
+    """funkcja update powoduje pomniejszenie położenia x przeszkody o 10 pikseli zgodnie z zegarem"""
+    """ adres rury został dodany jako :game_obstacle_image: string """
+    def update(self):
+        center = self.rect.center
+        self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
+        """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
+        if center[0] == -200:
+            """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
+             oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów"""
+            self.rect = self.image.get_rect(center=(1000, random.randrange(60,540)))
