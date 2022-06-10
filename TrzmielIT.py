@@ -662,10 +662,21 @@ def move_sprite_to(sprite, destination, speed):
         return True
 
 
-def start_1_player_mode(acc=0.0, main_screen_motion=0.0, trzmiel_group=None):
+def start_1_player_mode(**info):
+    """
+    :function start_1_player_mode:
+    :param info: Słownik argumentów potrzebnych przy rozpoczynaniu gry jednoosobowej
+        'acc' : wartość acc animacji tła
+        'main_screeen_motion' : wartość przesunięcia tła
+        'trzmiel_group' : grupa w której jest TrzmielSprite
+    :return:
+    """
+
+    """ to się tyczy przygotowania (zanikanie okna startowego) """
     global start_disappear
     start_disappear = True
     if one_player_mode:
+        """ Tu już się zaczyna konkretny kod dla gry jednoosobowej"""
         """ Utworzenie liczników """
         ones = ScoreCounterONES(counter_ones_position, game_images['numbers'])
         tens = ScoreCounterTENS(counter_tens_position, game_images['numbers'])
@@ -673,30 +684,35 @@ def start_1_player_mode(acc=0.0, main_screen_motion=0.0, trzmiel_group=None):
         counter_group_ones = pygame.sprite.Group(ones)
         counter_group_tens = pygame.sprite.Group(tens)
         counter_group_hundreds = pygame.sprite.Group(hundreds)
+        """ move_trzmiel przybiera wartość True kiedy ma zacząć się ruszać """
         move_trzmiel = False
         while True:
             global SCORE, click
+            """ naciśnięte klawisze """
             keys = pygame.key.get_pressed()
             if not move_trzmiel and (keys[K_SPACE] or keys[K_UP]):
+                """ rozpocznij ruch trzmiela po naciśnięciu spacji """
                 move_trzmiel = True
             click = False
             for event in pygame.event.get():
+                """ sprawdzanie czy nie użytkownik nie chce wyjść lub czy nie nacisnął myszki """
                 if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                     pygame.quit()
                     sys.exit()
                 elif event.type == MOUSEBUTTONUP:
                     click = True
             """ Animacja tła oraz umiejscowienie tytułu """
-            acc += time_clock.tick(FPS)
-            while acc >= 1:
-                acc -= 1
-                main_screen_motion += 0.1
-                if main_screen_motion >= 3202.0:
-                    main_screen_motion = 0
-                display_screen_window.blit(game_images['start_background'], (-main_screen_motion, 0))
+            info['acc'] += time_clock.tick(FPS)
+            while info['acc'] >= 1:
+                info['acc'] -= 1
+                info['main_screen_motion'] += 0.1
+                if info['main_screen_motion'] >= 3202.0:
+                    info['main_screen_motion'] = 0
+                display_screen_window.blit(game_images['start_background'], (-info['main_screen_motion'], 0))
             """ Trzmiel """
-            trzmiel_group.update(keys, move_trzmiel)
-            trzmiel_group.draw(display_screen_window)
+            info['trzmiel_group'].update(keys, move_trzmiel)
+            info['trzmiel_group'].draw(display_screen_window)
+            """ sprawdzanie wyniku oraz odpowienie wyświetlanie """
             if SCORE > 999:
                 SCORE = 0
             display_screen_window.blit(game_images['counter_background'], counter_background_positions)
@@ -871,4 +887,4 @@ if __name__ == "__main__":
 
     """ Gra jednoosobowa """
     if one_player_mode:
-        start_1_player_mode(acc, main_screen_motion, trzmiel_group)
+        start_1_player_mode(acc=acc, main_screen_motion=main_screen_motion, trzmiel_group=trzmiel_group)
