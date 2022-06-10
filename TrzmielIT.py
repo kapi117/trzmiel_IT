@@ -522,7 +522,7 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.change_image()
         if not move:
             if self.collision:
-                if self.rect.centery < src_height - self.image.get_height()/2:
+                if self.rect.centery < src_height - self.image.get_height()/3:
                     """ animacja kolizji """
                     self.rotation += 10
                     self.gravitation_pull()
@@ -706,9 +706,10 @@ def start_1_player_mode(**info):
             info['acc'] += time_clock.tick(FPS)
             while info['acc'] >= 1:
                 info['acc'] -= 1
-                info['main_screen_motion'] += 0.1
-                if info['main_screen_motion'] >= 3202.0:
-                    info['main_screen_motion'] = 0
+                if not info['trzmiel'].collision:
+                    info['main_screen_motion'] += 0.1
+                    if info['main_screen_motion'] >= 3202.0:
+                        info['main_screen_motion'] = 0
                 display_screen_window.blit(game_images['start_background'], (-info['main_screen_motion'], 0))
             """ Trzmiel """
             trzmiel_group.update(keys, move_trzmiel)
