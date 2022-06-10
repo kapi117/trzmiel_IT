@@ -453,32 +453,40 @@ if __name__ == "__main__":
 
     """ Okno startowe """
     start_window()
-"""
-Adres listy wyników
----------------
-game_highscores : string
-"""
-game_highscores = open(r"data/highscores.txt", 'r+')
-class highscores_list(game_highscores):
 
-    def __init__(self, list, highscores=None):
+"""Otwieranie pliku do edycji"""
+game_highscores = open(r"data/highscores.txt", 'r+')
+
+"""Klasa umożliwiająca zapisywanie i wyświetlanie 10 najlepszych wyników"""
+class highscores_list():
+
+    def __init__(self, list, game_highscores):
         self.best_ten = []
         ten_lines = [0,1,2,3,4,5,6,7,8,9]
         for i, line in enumerate(game_highscores):
             if i in ten_lines:
-                self.best_ten.append(line.strip())
+                if line != 0:
+                    self.best_ten.append(line.strip())
             elif i > 9:
                 break
+    """Sprawdzenie czy wynik nie jest wyższy od poprzednich"""
     def update(self,new_score):
-        for i in range(0,9):
-            if new_score > self.best_ten[i]:
-                lower_scores=[]
-                for n in range(i-1,8):
-                    lower_scores.append(self.best_ten[n])
+        for i,elem in self.best_ten:
+            if new_score > elem:
+                lower_scores=[x for x in self.best_ten[i:8]]
                 self.best_ten[i] = new_score
-                for n in range(0,len(lower_scores):
-                    self.best_ten.append( lower_scores[n] )
-
+                self.best_ten += lower_scores
+    """Odczyt 10 najlepszych wyników"""
+    def read(self):
+        return self.best_ten
+    """Reset listy wyników"""
     def reset(self):
-        self.best_ten.clear()
+        game_highscores.truncate(0)
+
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self, pos ,picture_path):
+        super().__init__()
+        self.pos = pos
+        self.image = pygame.image.load(picture_path)
+        self.rect = self.image.get_rect(center=self.pos)
 
