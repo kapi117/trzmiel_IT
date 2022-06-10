@@ -119,7 +119,7 @@ counter_background_positions = (10, 10)
     -----------------
 """
 start_button_settings_size = (50, 50)
-trzmiel_size = (120, 60)
+trzmiel_size = (60, 56)
 icon_size = (64, 32)
 settings_title_size = (305, 45)
 settings_button_pressed_size = (100, 100)
@@ -494,6 +494,9 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.y_velocity = 0
         self.delay = 0
         self.if_jumped = False
+        self.rotation = 0
+        self.collision = False
+        self.stop = False
 
     def gravitation_pull(self):
         """
@@ -503,11 +506,12 @@ class TrzmielSprite(pygame.sprite.Sprite):
 
     def change_image(self):
         """
-        :function change_image: Funkcja zmieniająca obrazek na następny w liście
+        :function change_image: Funkcja zmieniająca obrazek na następny w liście, dodatkowo obracająca go
         """
-        self.current_index = (self.current_index + 1) % len(self.images)
-        self.image = self.images[self.current_index]
-        self.rect = self.image.get_rect(center=self.rect.center)
+        if not self.stop:
+            self.current_index = (self.current_index + 1) % len(self.images)
+            self.image = pygame.transform.rotate(self.images[self.current_index], self.rotation)
+            self.rect = self.image.get_rect(center=self.rect.center)
 
     def update(self, keys, move=False):
         """
@@ -517,14 +521,25 @@ class TrzmielSprite(pygame.sprite.Sprite):
         """
         self.change_image()
         if not move:
-            if self.grow > self.y_move:
-                self.mode = -1
-            if self.grow < -self.y_move:
-                self.mode = 1
-                """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
-            self.grow += 1 * self.mode
-            center = self.rect.center
-            self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
+            if self.collision:
+                if self.rect.centery < src_height - self.image.get_height()/2:
+                    """ animacja kolizji """
+                    self.rotation += 10
+                    self.gravitation_pull()
+                    center = self.rect.center
+                    self.rect = self.image.get_rect(center=(center[0], center[1] + self.y_velocity))
+                else:
+                    self.stop = True
+            else:
+                """ animacja latania góra dół na oknie startowym i w oczekiwaniu na start """
+                if self.grow > self.y_move:
+                    self.mode = -1
+                if self.grow < -self.y_move:
+                    self.mode = 1
+                    """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
+                self.grow += 1 * self.mode
+                center = self.rect.center
+                self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
         else:
             if not self.if_jumped:
                 """ sprawdzenie czy nastąpił skok """
@@ -650,7 +665,7 @@ def start_1_player_mode(**info):
     :param info: Słownik argumentów potrzebnych przy rozpoczynaniu gry jednoosobowej
         'acc' : wartość acc animacji tła
         'main_screeen_motion' : wartość przesunięcia tła
-        'trzmiel_group' : grupa w której jest TrzmielSprite
+        'trzmiel' : TrzmielSprite
     :return:
     """
 
@@ -668,11 +683,13 @@ def start_1_player_mode(**info):
         counter_group_hundreds = pygame.sprite.Group(hundreds)
         """ move_trzmiel przybiera wartość True kiedy ma zacząć się ruszać """
         move_trzmiel = False
+        """ grupa trzmiela """
+        trzmiel_group = pygame.sprite.Group(info['trzmiel'])
         while True:
             global SCORE, click
             """ naciśnięte klawisze """
             keys = pygame.key.get_pressed()
-            if not move_trzmiel and (keys[K_SPACE] or keys[K_UP]):
+            if not move_trzmiel and not info['trzmiel'].collision and (keys[K_SPACE] or keys[K_UP]):
                 """ rozpocznij ruch trzmiela po naciśnięciu spacji """
                 move_trzmiel = True
             click = False
@@ -683,6 +700,8 @@ def start_1_player_mode(**info):
                     sys.exit()
                 elif event.type == MOUSEBUTTONUP:
                     click = True
+                    info['trzmiel'].collision = True
+                    move_trzmiel = False
             """ Animacja tła oraz umiejscowienie tytułu """
             info['acc'] += time_clock.tick(FPS)
             while info['acc'] >= 1:
@@ -692,8 +711,8 @@ def start_1_player_mode(**info):
                     info['main_screen_motion'] = 0
                 display_screen_window.blit(game_images['start_background'], (-info['main_screen_motion'], 0))
             """ Trzmiel """
-            info['trzmiel_group'].update(keys, move_trzmiel)
-            info['trzmiel_group'].draw(display_screen_window)
+            trzmiel_group.update(keys, move_trzmiel)
+            trzmiel_group.draw(display_screen_window)
             """ sprawdzanie wyniku oraz odpowienie wyświetlanie """
             if SCORE > 999:
                 SCORE = 0
@@ -798,7 +817,7 @@ def start_window():
         """ Jeśli wszystkie zniknęły to mamy tryb jednoosobowy """
         if end_start:
             one_player_mode = True
-            return acc, main_screen_motion, trzmiel_group
+            return acc, main_screen_motion, trzmiel
 
         """ Nieaktywny guzik """
         if (click and check_if_clicked(pygame.mouse.get_pos(), (
@@ -863,8 +882,8 @@ if __name__ == "__main__":
     pygame.display.set_icon(game_images['icon'])
 
     """ Okno startowe """
-    acc, main_screen_motion, trzmiel_group = start_window()
+    acc, main_screen_motion, trzmiel = start_window()
 
     """ Gra jednoosobowa """
     if one_player_mode:
-        start_1_player_mode(acc=acc, main_screen_motion=main_screen_motion, trzmiel_group=trzmiel_group)
+        start_1_player_mode(acc=acc, main_screen_motion=main_screen_motion, trzmiel=trzmiel)
