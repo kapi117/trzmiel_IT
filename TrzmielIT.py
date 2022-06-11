@@ -704,6 +704,8 @@ def start_1_player_mode(**info):
         move_trzmiel = False
         """ start_game przybiera wartość True gdy rozpoczęto grę"""
         start_game = False
+        """Wielkość szczeliny"""
+        gap = 147
         """ grupa trzmiela """
         trzmiel_group = pygame.sprite.Group(info['trzmiel'])
         while True:
@@ -722,8 +724,6 @@ def start_1_player_mode(**info):
                     sys.exit()
                 elif event.type == MOUSEBUTTONUP:
                     click = True
-                    info['trzmiel'].collision = True
-                    move_trzmiel = False
             """ Animacja tła oraz umiejscowienie tytułu """
             info['acc'] += time_clock.tick(FPS)
             while info['acc'] >= 1:
@@ -760,6 +760,14 @@ def start_1_player_mode(**info):
             if open_results:
                 results_window()
 
+            """Kolizja"""
+            obstacle = pygame.sprite.spritecollideany(trzmiel, obstacle_group)
+            if obstacle:
+                if abs(trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2 + trzmiel_size[1] / 2:
+                    # koniec gry
+                    info['trzmiel'].collision = True
+                    move_trzmiel = False
+
             """ Uaktualnienie widoku """
             pygame.display.flip()
             time_clock.tick(FPS)
@@ -787,7 +795,6 @@ class Obstacle(pygame.sprite.Sprite):
         center = self.rect.center
         self.rect = self.image.get_rect(center=(center[0] - 5, center[1]))
         self.threshold = pygame.Rect(center, (1, self.image.get_height())).move(0, -self.image.get_height() / 2)
-        pygame.draw.rect(display_screen_window, (34, 123, 32), self.threshold)
         """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
         if center[0] == -200:
             """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
@@ -866,8 +873,6 @@ def start_window():
     main_screen_motion = 1
     """ akumulator wykorzystywany przy wyświetlaniu nieaktywnego przycisku"""
     inactive_acc = 0
-    """Wielkość szczeliny"""
-    gap = 350
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
         global click, start_disappear, SCORE, one_player_mode, inactive_bool
@@ -920,13 +925,6 @@ def start_window():
         else :
             inactive_bool = False
             inactive_acc = 0
-
-        """Kolizja"""
-        if pygame.sprite.spritecollideany(trzmiel,obstacle_group) :
-            obstacle = pygame.sprite.spritecollideany(trzmiel,obstacle_group)
-            if abs(trzmiel.rect.center[1] - obstacle.rect.center[1] ) > gap/2 - trzmiel_size[1]/2  :
-                    #koniec gry
-                    pass
 
         """ Uaktualnienie widoku """
         pygame.display.flip()
