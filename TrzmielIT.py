@@ -49,6 +49,7 @@ start_disappear = False
 one_player_mode = False
 SCORE = 0
 pointget_acc = 0
+inactive_bool = False
 
 """
     Adresy obrazków i dźwięków
@@ -77,18 +78,18 @@ start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
-
 game_obstacle_image = 'images/game/rura.png'
 start_inactive_button_image = 'images/start/inactive_button.png'
-icon_image = 'images/start/icon.png'
+counter_background = 'images/counter_background.png'
 
+icon_image = 'images/start/icon.png'
 trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 number_table = [f'images/numbers/number_{x}.png' for x in range(10)]
 start_music = 'audio/theme_music.mp3'
 start_click_sound = 'sounds/click.wav'
 on_hover_sound = 'sounds/on_hover.wav'
 jumping_sound = 'sounds/jump.wav'
-counter_background = 'images/counter_background.png'
+hit_sound = 'sounds/hit.wav'
 point_get_sound = 'sounds/pointget.wav'
 
 settings_background_image = 'images/settings/settings.background.png'
@@ -490,14 +491,9 @@ class TrzmielSprite(pygame.sprite.Sprite):
             :ivar self.grow: Parametr unoszenia co klatkę
             :type self.grow: int
             :ivar self.y_move: odległość uniesienia
-            :type self.scale: int
+            :type self.y_move: int
             :ivar self.y_velocity: prędkość w pionie
-            :type self.scale: int
-            :ivar self.delay: opóżnienie w mozliwości skoku
-            :type self.scale: int
-            :ivar self.y_move: Zmienna zapisująca czy nastapił skok
-            :type self.scale: bool
-
+            :type self.y_velocity: int
         """
 
     def __init__(self, center, images):
@@ -511,7 +507,6 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.mode = 1
         self.y_move = 5
         self.y_velocity = 0
-        self.delay = 0
         self.if_jumped = False
         self.rotation = 0
         self.collision = False
@@ -709,6 +704,8 @@ def start_1_player_mode(**info):
         move_trzmiel = False
         """ start_game przybiera wartość True gdy rozpoczęto grę"""
         start_game = False
+        """Wielkość szczeliny"""
+        gap = 147
         """ grupa trzmiela """
         trzmiel_group = pygame.sprite.Group(info['trzmiel'])
         while True:
@@ -727,8 +724,6 @@ def start_1_player_mode(**info):
                     sys.exit()
                 elif event.type == MOUSEBUTTONUP:
                     click = True
-                    info['trzmiel'].collision = True
-                    move_trzmiel = False
             """ Animacja tła oraz umiejscowienie tytułu """
             info['acc'] += time_clock.tick(FPS)
             while info['acc'] >= 1:
@@ -765,6 +760,14 @@ def start_1_player_mode(**info):
             if open_results:
                 results_window()
 
+            """Kolizja"""
+            obstacle = pygame.sprite.spritecollideany(trzmiel, obstacle_group)
+            if obstacle:
+                if abs(trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2 + trzmiel_size[1] / 2:
+                    # koniec gry
+                    info['trzmiel'].collision = True
+                    move_trzmiel = False
+
             """ Uaktualnienie widoku """
             pygame.display.flip()
             time_clock.tick(FPS)
@@ -792,7 +795,6 @@ class Obstacle(pygame.sprite.Sprite):
         center = self.rect.center
         self.rect = self.image.get_rect(center=(center[0] - 5, center[1]))
         self.threshold = pygame.Rect(center, (1, self.image.get_height())).move(0, -self.image.get_height() / 2)
-        pygame.draw.rect(display_screen_window, (34, 123, 32), self.threshold)
         """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
         if center[0] == -200:
             """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
@@ -823,6 +825,9 @@ def pointget(obst, trzmiel: TrzmielSprite):
             pygame.mixer.Channel(point_get_sound_channel).set_volume(0.5)
             pygame.mixer.Channel(point_get_sound_channel).play(game_sounds["point_get_sound"])
 
+def inactive():
+    global inactive_bool
+    inactive_bool = True
 
 def start_window():
     """
@@ -870,7 +875,7 @@ def start_window():
     inactive_acc = 0
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
-        global click, start_disappear, SCORE, one_player_mode
+        global click, start_disappear, SCORE, one_player_mode, inactive_bool
         keys = pygame.key.get_pressed()
         click = False
         for event in pygame.event.get():
@@ -913,14 +918,12 @@ def start_window():
             one_player_mode = True
             return acc, main_screen_motion, trzmiel
 
-        """ Nieaktywny guzik """
-        if (click and check_if_clicked(pygame.mouse.get_pos(), (
-                start_button_2_player_position[0] - 398 / 2, start_button_2_player_position[0] + 398 / 2,
-                start_button_2_player_position[1] - 85 / 2, start_button_2_player_position[1] + 85 / 2)) or (
-                0 < inactive_acc < 40)):
+        """Nieaktywny przycisk"""
+        if inactive_bool and inactive_acc < 40:
             display_screen_window.blit(game_images['inactive_button'], pygame.mouse.get_pos())
             inactive_acc += 1
-        else:
+        else :
+            inactive_bool = False
             inactive_acc = 0
 
         """ Uaktualnienie widoku """
@@ -974,6 +977,8 @@ if __name__ == "__main__":
     game_sounds["on_hover_sound"] = pygame.mixer.Sound(on_hover_sound)
     game_sounds["jumping_sound"] = pygame.mixer.Sound(jumping_sound)
     game_sounds["point_get_sound"] = pygame.mixer.Sound(point_get_sound)
+    game_sounds["hit_sound"] = pygame.mixer.Sound(hit_sound)
+
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
 
@@ -1001,9 +1006,8 @@ class Highscores_list():
 
     def __init__(self, list, game_highscores):
         self.best_ten = []
-        ten_lines = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         for i, line in enumerate(game_highscores):
-            if i in ten_lines:
+            if i in range(10):
                 if line != 0:
                     self.best_ten.append(line.strip())
             elif i > 9:
