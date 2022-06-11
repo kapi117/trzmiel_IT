@@ -152,7 +152,6 @@ start_click_sound_channel = 1
 jumping_sound_channel = 2
 point_get_sound_channel = 3
 
-
 """ game_images : Dict[string, image.pyi]
         Słownik przechowujący obrazki
     game_sounds : Dict[string, image.pyi]
@@ -698,7 +697,6 @@ def start_1_player_mode(**info):
         counter_group_ones = pygame.sprite.Group(ones)
         counter_group_tens = pygame.sprite.Group(tens)
         counter_group_hundreds = pygame.sprite.Group(hundreds)
-
         """ Poniżej tworze 4 obiekty klasy obstacle, odległe od siebie o 400 px pojawiające się za ekranem
         obiekty te są dodawane do grupy także można je wszystkie wywoływać i wpływać na nie za pomocą pojedynczych poleceń
         """
@@ -709,6 +707,8 @@ def start_1_player_mode(**info):
 
         """ move_trzmiel przybiera wartość True kiedy ma zacząć się ruszać """
         move_trzmiel = False
+        """ start_game przybiera wartość True gdy rozpoczęto grę"""
+        start_game = False
         """ grupa trzmiela """
         trzmiel_group = pygame.sprite.Group(info['trzmiel'])
         while True:
@@ -718,6 +718,7 @@ def start_1_player_mode(**info):
             if not move_trzmiel and not info['trzmiel'].collision and (keys[K_SPACE] or keys[K_UP]):
                 """ rozpocznij ruch trzmiela po naciśnięciu spacji """
                 move_trzmiel = True
+                start_game = True
             click = False
             for event in pygame.event.get():
                 """ sprawdzanie czy nie użytkownik nie chce wyjść lub czy nie nacisnął myszki """
@@ -730,12 +731,6 @@ def start_1_player_mode(**info):
                     move_trzmiel = False
             """ Animacja tła oraz umiejscowienie tytułu """
             info['acc'] += time_clock.tick(FPS)
-            if move_trzmiel:
-                obstacle_group.update()
-                obstacle_group.draw(display_screen_window)
-                """sprawdzanie czy gracz zdobył punkt"""
-                for el in obstacle_group:
-                    pointget(el, info['trzmiel'])
             while info['acc'] >= 1:
                 info['acc'] -= 1
                 if not info['trzmiel'].collision:
@@ -743,6 +738,14 @@ def start_1_player_mode(**info):
                     if info['main_screen_motion'] >= 3202.0:
                         info['main_screen_motion'] = 0
                 display_screen_window.blit(game_images['start_background'], (-info['main_screen_motion'], 0))
+            """ Rysowanie rur """
+            if start_game:
+                obstacle_group.draw(display_screen_window)
+            if move_trzmiel:
+                obstacle_group.update()
+                """sprawdzanie czy gracz zdobył punkt"""
+                for el in obstacle_group:
+                    pointget(el, info['trzmiel'])
             """ Trzmiel """
             trzmiel_group.update(keys, move_trzmiel)
             trzmiel_group.draw(display_screen_window)
@@ -781,13 +784,15 @@ class Obstacle(pygame.sprite.Sprite):
         """threshold to rectangle służący do sprawdzania czy gracz zdobył punkt
         po wyśrodkowaniu grafiki poniżej wartość (self.pos[0],self.pos[1]-53) nalezy zastąpić
         poprostu self.pos i analogicznie w update center"""
-        self.threshold = pygame.Rect(self.pos, (1, 300)).clamp(self.rect)
+        self.threshold = pygame.Rect(self.pos, (1, self.image.get_height())).move(0, -self.image.get_height() / 2)
+
     """funkcja update powoduje pomniejszenie położenia x przeszkody o 5 pikseli zgodnie z zegarem"""
 
     def update(self):
         center = self.rect.center
-        self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
-        self.threshold = pygame.Rect(center, (1, 300)).clamp(self.rect)
+        self.rect = self.image.get_rect(center=(center[0] - 5, center[1]))
+        self.threshold = pygame.Rect(center, (1, self.image.get_height())).move(0, -self.image.get_height() / 2)
+        pygame.draw.rect(display_screen_window, (34, 123, 32), self.threshold)
         """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
         if center[0] == -200:
             """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
@@ -806,15 +811,16 @@ class Obstacle(pygame.sprite.Sprite):
      w związku z tym funkcja liczy do 24 za pomocą funkcji pointget, aby następnie powiększyć SCORE o 1
 """
 
-def pointget(obst,trzmiel: TrzmielSprite):
+
+def pointget(obst, trzmiel: TrzmielSprite):
     global SCORE
     global pointget_acc
     if obst.threshold.colliderect(trzmiel):
         pointget_acc += 1
-        if pointget_acc >= 24:
+        if pointget_acc >= 12:
             SCORE += 1
             pointget_acc = 0
-            pygame.mixer.Channel(point_get_sound_channel).set_volume(1.0)
+            pygame.mixer.Channel(point_get_sound_channel).set_volume(0.5)
             pygame.mixer.Channel(point_get_sound_channel).play(game_sounds["point_get_sound"])
 
 
@@ -984,6 +990,8 @@ if __name__ == "__main__":
 game_highscores = open(r"data/highscores.txt", 'r+')
 
 """Klasa umożliwiająca zapisywanie i wyświetlanie 10 najlepszych wyników"""
+
+
 class Highscores_list():
     """
     :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
@@ -993,7 +1001,7 @@ class Highscores_list():
 
     def __init__(self, list, game_highscores):
         self.best_ten = []
-        ten_lines = [0,1,2,3,4,5,6,7,8,9]
+        ten_lines = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         for i, line in enumerate(game_highscores):
             if i in ten_lines:
                 if line != 0:
@@ -1001,15 +1009,15 @@ class Highscores_list():
             elif i > 9:
                 break
 
-    def update(self,new_score):
+    def update(self, new_score):
         """
         :function update: Sprawdza czy nowy wynik nie jest wyższy od któregoś z najlepszych i jeśli tak to go wpisuje
         :param new_score: Nowy osiągnięty wynik
         :type new_score: integer
         """
-        for i,elem in self.best_ten:
+        for i, elem in self.best_ten:
             if new_score > elem:
-                lower_scores=[x for x in self.best_ten[i:8]]
+                lower_scores = [x for x in self.best_ten[i:8]]
                 self.best_ten[i] = new_score
                 self.best_ten += lower_scores
 
@@ -1018,7 +1026,6 @@ class Highscores_list():
         :function read: Odczyt 10 najlepszych wyników
         """
         return self.best_ten
-
 
     def reset(self):
         """
