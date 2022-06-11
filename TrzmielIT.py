@@ -691,13 +691,13 @@ class Obstacle(pygame.sprite.Sprite):
         """threshold to rectangle służący do sprawdzania czy gracz zdobył punkt
         po wyśrodkowaniu grafiki poniżej wartość (self.pos[0],self.pos[1]-53) nalezy zastąpić
         poprostu self.pos i analogicznie w update center"""
-        self.threshold = pygame.Rect((self.pos[0],self.pos[1]-53), (1, 140))
+        self.threshold = pygame.Rect(self.pos, (1, 300)).clamp(self.rect)
     """funkcja update powoduje pomniejszenie położenia x przeszkody o 5 pikseli zgodnie z zegarem"""
 
     def update(self):
         center = self.rect.center
         self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
-        self.threshold = pygame.Rect((center[0],center[1]-53), (1, 140))
+        self.threshold = pygame.Rect(center, (1, 300)).clamp(self.rect)
         """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
         if center[0] == -200:
             """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
