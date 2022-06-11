@@ -32,6 +32,9 @@ import random
         True jeśli ma być otwrte okno, w innym przypadku False
     start_disappear : bool
         True jeśli ma zaniknąć okno startowe
+    pointget_acc : int
+        służy do wywoływania funkcji pointget, domyślnie powinna zostać przeniesiona jako zmienna okna 1_player_mode
+        lub jakkolwiek będzie się nazywać
 """
 FPS = 32
 src_width = 800
@@ -44,6 +47,7 @@ open_settings = False
 start_disappear = False
 one_player_mode = False
 SCORE = 0
+pointget_acc = 0
 
 """
     Adresy obrazków i dźwięków
@@ -84,6 +88,7 @@ start_click_sound = 'sounds/click.wav'
 on_hover_sound = 'sounds/on_hover.wav'
 jumping_sound = 'sounds/jump.wav'
 counter_background = 'images/counter_background.png'
+point_get_sound = 'sounds/pointget.wav'
 
 settings_background_image = 'images/settings/settings.background.png'
 settings_title_image = 'images/settings/settings.title.png'
@@ -146,6 +151,7 @@ counter_background_size = (150, 85)
 start_music_channel = 0
 start_click_sound_channel = 1
 jumping_sound_channel = 2
+point_get_sound_channel = 3
 
 
 """ game_images : Dict[string, image.pyi]
@@ -671,26 +677,55 @@ def start_1_player_mode():
     one_player_mode = True
 
 
-"""Klasa odpowiedzialna za pojawianie się na ekranie i animację przeszkody"""
+"""Klasa odpowiedzialna za pojawianie się na ekranie i animację przeszkody
+    oprócz tego pojawia niewidzialny próg na środku przeszkody, którego przekroczenie ma powodować zdobycie punktu
+    (zaimplementowane w funkcji pointget)"""
 
 
 class Obstacle(pygame.sprite.Sprite):
-    def __init__(self, pos ,picture_path):
+    def __init__(self, pos, picture_path):
         super().__init__()
         self.pos = pos
-        self.image = pygame.image.load(picture_path)
+        self.image = pygame.transform.scale(pygame.image.load(picture_path), (100, 1150))
         self.rect = self.image.get_rect(center=self.pos)
-
-    """funkcja update powoduje pomniejszenie położenia x przeszkody o 10 pikseli zgodnie z zegarem"""
+        """threshold to rectangle służący do sprawdzania czy gracz zdobył punkt
+        po wyśrodkowaniu grafiki poniżej wartość (self.pos[0],self.pos[1]-53) nalezy zastąpić
+        poprostu self.pos i analogicznie w update center"""
+        self.threshold = pygame.Rect((self.pos[0],self.pos[1]-53), (1, 140))
+    """funkcja update powoduje pomniejszenie położenia x przeszkody o 5 pikseli zgodnie z zegarem"""
 
     def update(self):
         center = self.rect.center
         self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
+        self.threshold = pygame.Rect((center[0],center[1]-53), (1, 140))
         """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
         if center[0] == -200:
             """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
              oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów"""
-            self.rect = self.image.get_rect(center=(1000, random.randrange(60, 540)))
+            self.rect = self.image.get_rect(center=(1000, random.randrange(80, 520)))
+
+
+"""
+    funkcja pointget przyjmuje:
+     obst : Obstacle - przeszkoda, w której znajduje sie pole threshold
+     trzmiel : TrzmielSprite - grywalny ptak lotny B)
+     SCORE - globalna zmienna przechowująca liczbę puntków gracza
+     pointget_acc - akumulator globalny
+     
+     Okazuje się że trzmiel koliduje z threshold dokładnie 24 razy przy przelocie przez jedną przeszkodę,
+     w związku z tym funkcja liczy do 24 za pomocą funkcji pointget, aby następnie powiększyć SCORE o 1
+"""
+
+def pointget(obst,trzmiel: TrzmielSprite):
+    global SCORE
+    global pointget_acc
+    if obst.threshold.colliderect(trzmiel):
+        pointget_acc += 1
+        if pointget_acc >= 24:
+            SCORE += 1
+            pointget_acc = 0
+            pygame.mixer.Channel(point_get_sound_channel).set_volume(1.0)
+            pygame.mixer.Channel(point_get_sound_channel).play(game_sounds["point_get_sound"])
 
 
 def start_window():
@@ -718,13 +753,12 @@ def start_window():
     button_music.set_on_click(toggle_music)
     button_sound.set_on_click(toggle_sounds)
     """ Poniżej tworze 4 obiekty klasy obstacle, odległe od siebie o 400 px pojawiające się za ekranem
-    obiekty te są dodawane do grupy także można je wszystkie wywoływać i wpływać na nie za pomocą pojedynczych poleceń"""
+    obiekty te są dodawane do grupy także można je wszystkie wywoływać i wpływać na nie za pomocą pojedynczych poleceń
+    """
     obstacle_group = pygame.sprite.Group()
-
     for obst in range(3):
-        new_obst = Obstacle([1000 + obst * 400, random.randrange(60,540)],"images/game/rura.png")
+        new_obst = Obstacle([1000 + obst * 400, random.randrange(80,520)],"images/game/rura.png")
         obstacle_group.add(new_obst)
-
     """ Utworzenie trzmiela """
     trzmiel = TrzmielSprite(start_trzmiel_position, game_images['trzmiel'])
     trzmiel_group = pygame.sprite.Group(trzmiel)
@@ -815,6 +849,10 @@ def start_window():
         else:
             inactive_acc = 0
 
+        """sprawdzanie czy gracz zdobył punkt"""
+        for el in obstacle_group:
+            pointget(el, trzmiel)
+
         """ Uaktualnienie widoku """
         pygame.display.flip()
         time_clock.tick(FPS)
@@ -863,7 +901,7 @@ if __name__ == "__main__":
     game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
     game_sounds["on_hover_sound"] = pygame.mixer.Sound(on_hover_sound)
     game_sounds["jumping_sound"] = pygame.mixer.Sound(jumping_sound)
-
+    game_sounds["point_get_sound"] = pygame.mixer.Sound(point_get_sound)
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
 
