@@ -3,6 +3,7 @@ from typing import Tuple
 import pygame
 from pygame.locals import *
 import sys
+import random
 
 """
     TrzmielIT
@@ -31,8 +32,11 @@ import sys
         True jeśli ma być otwrte okno, w innym przypadku False
     start_disappear : bool
         True jeśli ma zaniknąć okno startowe
+    pointget_acc : int
+        służy do wywoływania funkcji pointget, domyślnie powinna zostać przeniesiona jako zmienna okna 1_player_mode
+        lub jakkolwiek będzie się nazywać
 """
-FPS = 32
+FPS = 60
 src_width = 800
 src_height = 600
 display_screen_window = pygame.display.set_mode((src_width, src_height))
@@ -44,6 +48,7 @@ open_results = False
 start_disappear = False
 one_player_mode = False
 SCORE = 0
+pointget_acc = 0
 
 """
     Adresy obrazków i dźwięków
@@ -58,6 +63,8 @@ SCORE = 0
         Adres obrazku przycisku gry dwuosobowej
     start_button_settings_image : string
         Adres obrazku przycisku ustawień
+    game_obstacle_image : string
+        Adres obrazku przeszkody
     start_music : string
         Adres dźwięku melodii startowej
     start_click_sound : string
@@ -70,9 +77,11 @@ start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
-start_inactive_button_image = 'images/start/inactive_button.png'
 
+game_obstacle_image = 'images/game/rura.png'
+start_inactive_button_image = 'images/start/inactive_button.png'
 icon_image = 'images/start/icon.png'
+
 trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 number_table = [f'images/numbers/number_{x}.png' for x in range(10)]
 start_music = 'audio/theme_music.mp3'
@@ -80,6 +89,7 @@ start_click_sound = 'sounds/click.wav'
 on_hover_sound = 'sounds/on_hover.wav'
 jumping_sound = 'sounds/jump.wav'
 counter_background = 'images/counter_background.png'
+point_get_sound = 'sounds/pointget.wav'
 
 settings_background_image = 'images/settings/settings.background.png'
 settings_title_image = 'images/settings/settings.title.png'
@@ -140,6 +150,8 @@ counter_background_size = (150, 85)
 start_music_channel = 0
 start_click_sound_channel = 1
 jumping_sound_channel = 2
+point_get_sound_channel = 3
+
 
 """ game_images : Dict[string, image.pyi]
         Słownik przechowujący obrazki
@@ -551,20 +563,15 @@ class TrzmielSprite(pygame.sprite.Sprite):
                 center = self.rect.center
                 self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
         else:
-            if not self.if_jumped:
-                """ sprawdzenie czy nastąpił skok """
-                if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
-                    self.y_velocity = 0
-                    self.y_velocity -= 15
-                    pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["jumping_sound"])
-                    pygame.mixer.Channel(jumping_sound_channel).set_volume(0.2)
-                    self.if_jumped = True
-            if self.if_jumped:
-                """ zliczanie opóźnienia """
-                self.delay += 1
-            if self.delay == 3:
+            """ sprawdzenie czy nastąpił skok """
+            if (keys[pygame.K_SPACE] or keys[pygame.K_UP]) and not self.if_jumped:
+                self.y_velocity = 0
+                self.y_velocity -= 15
+                pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["jumping_sound"])
+                pygame.mixer.Channel(jumping_sound_channel).set_volume(0.2)
+                self.if_jumped = True
+            elif not (keys[pygame.K_SPACE] or keys[pygame.K_UP]):
                 self.if_jumped = False
-                self.delay = 0
             self.gravitation_pull()
             center = self.rect.center
             self.rect = self.image.get_rect(center=(center[0], center[1] + self.y_velocity))
@@ -691,6 +698,15 @@ def start_1_player_mode(**info):
         counter_group_ones = pygame.sprite.Group(ones)
         counter_group_tens = pygame.sprite.Group(tens)
         counter_group_hundreds = pygame.sprite.Group(hundreds)
+
+        """ Poniżej tworze 4 obiekty klasy obstacle, odległe od siebie o 400 px pojawiające się za ekranem
+        obiekty te są dodawane do grupy także można je wszystkie wywoływać i wpływać na nie za pomocą pojedynczych poleceń
+        """
+        obstacle_group = pygame.sprite.Group()
+        for obst in range(3):
+            new_obst = Obstacle([1000 + obst * 400, random.randrange(80, 520)], "images/game/rura.png")
+            obstacle_group.add(new_obst)
+
         """ move_trzmiel przybiera wartość True kiedy ma zacząć się ruszać """
         move_trzmiel = False
         """ grupa trzmiela """
@@ -714,6 +730,12 @@ def start_1_player_mode(**info):
                     move_trzmiel = False
             """ Animacja tła oraz umiejscowienie tytułu """
             info['acc'] += time_clock.tick(FPS)
+            if move_trzmiel:
+                obstacle_group.update()
+                obstacle_group.draw(display_screen_window)
+                """sprawdzanie czy gracz zdobył punkt"""
+                for el in obstacle_group:
+                    pointget(el, info['trzmiel'])
             while info['acc'] >= 1:
                 info['acc'] -= 1
                 if not info['trzmiel'].collision:
@@ -743,6 +765,57 @@ def start_1_player_mode(**info):
             """ Uaktualnienie widoku """
             pygame.display.flip()
             time_clock.tick(FPS)
+
+
+"""Klasa odpowiedzialna za pojawianie się na ekranie i animację przeszkody
+    oprócz tego pojawia niewidzialny próg na środku przeszkody, którego przekroczenie ma powodować zdobycie punktu
+    (zaimplementowane w funkcji pointget)"""
+
+
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self, pos, picture_path):
+        super().__init__()
+        self.pos = pos
+        self.image = pygame.transform.scale(pygame.image.load(picture_path), (100, 1150))
+        self.rect = self.image.get_rect(center=self.pos)
+        """threshold to rectangle służący do sprawdzania czy gracz zdobył punkt
+        po wyśrodkowaniu grafiki poniżej wartość (self.pos[0],self.pos[1]-53) nalezy zastąpić
+        poprostu self.pos i analogicznie w update center"""
+        self.threshold = pygame.Rect(self.pos, (1, 300)).clamp(self.rect)
+    """funkcja update powoduje pomniejszenie położenia x przeszkody o 5 pikseli zgodnie z zegarem"""
+
+    def update(self):
+        center = self.rect.center
+        self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
+        self.threshold = pygame.Rect(center, (1, 300)).clamp(self.rect)
+        """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
+        if center[0] == -200:
+            """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
+             oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów"""
+            self.rect = self.image.get_rect(center=(1000, random.randrange(80, 520)))
+
+
+"""
+    funkcja pointget przyjmuje:
+     obst : Obstacle - przeszkoda, w której znajduje sie pole threshold
+     trzmiel : TrzmielSprite - grywalny ptak lotny B)
+     SCORE - globalna zmienna przechowująca liczbę puntków gracza
+     pointget_acc - akumulator globalny
+     
+     Okazuje się że trzmiel koliduje z threshold dokładnie 24 razy przy przelocie przez jedną przeszkodę,
+     w związku z tym funkcja liczy do 24 za pomocą funkcji pointget, aby następnie powiększyć SCORE o 1
+"""
+
+def pointget(obst,trzmiel: TrzmielSprite):
+    global SCORE
+    global pointget_acc
+    if obst.threshold.colliderect(trzmiel):
+        pointget_acc += 1
+        if pointget_acc >= 24:
+            SCORE += 1
+            pointget_acc = 0
+            pygame.mixer.Channel(point_get_sound_channel).set_volume(1.0)
+            pygame.mixer.Channel(point_get_sound_channel).play(game_sounds["point_get_sound"])
 
 
 def start_window():
@@ -894,7 +967,7 @@ if __name__ == "__main__":
     game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
     game_sounds["on_hover_sound"] = pygame.mixer.Sound(on_hover_sound)
     game_sounds["jumping_sound"] = pygame.mixer.Sound(jumping_sound)
-
+    game_sounds["point_get_sound"] = pygame.mixer.Sound(point_get_sound)
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
 
@@ -904,3 +977,51 @@ if __name__ == "__main__":
     """ Gra jednoosobowa """
     if one_player_mode:
         start_1_player_mode(acc=acc, main_screen_motion=main_screen_motion, trzmiel=trzmiel)
+
+"""
+ :game_highscores: Obiekt typu file odczytujący plik txt z wynikami
+"""
+game_highscores = open(r"data/highscores.txt", 'r+')
+
+"""Klasa umożliwiająca zapisywanie i wyświetlanie 10 najlepszych wyników"""
+class Highscores_list():
+    """
+    :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
+    :ivar self.best_ten: Lista przechowująca 10 najlepszych wyników
+    :type self.best_ten: List[integer]
+    """
+
+    def __init__(self, list, game_highscores):
+        self.best_ten = []
+        ten_lines = [0,1,2,3,4,5,6,7,8,9]
+        for i, line in enumerate(game_highscores):
+            if i in ten_lines:
+                if line != 0:
+                    self.best_ten.append(line.strip())
+            elif i > 9:
+                break
+
+    def update(self,new_score):
+        """
+        :function update: Sprawdza czy nowy wynik nie jest wyższy od któregoś z najlepszych i jeśli tak to go wpisuje
+        :param new_score: Nowy osiągnięty wynik
+        :type new_score: integer
+        """
+        for i,elem in self.best_ten:
+            if new_score > elem:
+                lower_scores=[x for x in self.best_ten[i:8]]
+                self.best_ten[i] = new_score
+                self.best_ten += lower_scores
+
+    def read(self):
+        """
+        :function read: Odczyt 10 najlepszych wyników
+        """
+        return self.best_ten
+
+
+    def reset(self):
+        """
+        :function reset: Wymazanie zawartości pliku z wynikami
+        """
+        game_highscores.truncate(0)
