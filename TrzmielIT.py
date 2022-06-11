@@ -52,6 +52,7 @@ pointget_acc = 0
 inactive_bool = False
 game_highscores_file = open(r"data/highscores.txt", 'r+')
 HIGHSCORE = None
+gap = 147
 
 """
     Adresy obrazków i dźwięków
@@ -133,6 +134,9 @@ results_background_position = (208, 108)
 highscore_hundreds_position = (362, 315)
 highscore_tens_position = (397, 315)
 highscore_ones_position = (432, 315)
+score_hundreds_position = (362, 225)
+score_tens_position = (397, 225)
+score_ones_position = (432, 225)
 
 """
     Rozmiary obrazków : Tuple[int, int]
@@ -385,6 +389,7 @@ def results_window():
     display_screen_window.blit(game_images['results_background'], results_background_position)
     HIGHSCORE.update(SCORE)
     show_number(highscore_ones_position, highscore_tens_position, highscore_hundreds_position, HIGHSCORE.read()[0])
+    show_number(score_ones_position, score_tens_position, score_hundreds_position, SCORE)
 
 
 class Numbers(pygame.sprite.Sprite):
@@ -777,24 +782,28 @@ def start_1_player_mode(**info):
                 results_window()
 
             """Kolizja"""
-            obstacle = pygame.sprite.spritecollideany(trzmiel, obstacle_group)
+            obstacle = pygame.sprite.spritecollideany(info['trzmiel'], obstacle_group, check_collision)
             if obstacle:
-                if abs(trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2 + trzmiel_size[1] / 2:
-                    # koniec gry
-                    info['trzmiel'].collision = True
-                    move_trzmiel = False
+                move_trzmiel = False
+                info['trzmiel'].collision = True
 
             """ Uaktualnienie widoku """
             pygame.display.flip()
             time_clock.tick(FPS)
 
 
-"""Klasa odpowiedzialna za pojawianie się na ekranie i animację przeszkody
-    oprócz tego pojawia niewidzialny próg na środku przeszkody, którego przekroczenie ma powodować zdobycie punktu
-    (zaimplementowane w funkcji pointget)"""
+def check_collision(trzmiel, obstacle):
+    obstacle_borders = (
+        obstacle.rect.centerx - obstacle.image.get_width() / 2, obstacle.rect.centerx + obstacle.image.get_width() / 2)
+    return obstacle_borders[0] < trzmiel.rect.centerx + trzmiel.image.get_width() / 2 < obstacle_borders[1] and abs(
+        trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2 + trzmiel_size[1] / 2
 
 
 class Obstacle(pygame.sprite.Sprite):
+    """Klasa odpowiedzialna za pojawianie się na ekranie i animację przeszkody
+        oprócz tego pojawia niewidzialny próg na środku przeszkody, którego przekroczenie ma powodować zdobycie punktu
+        (zaimplementowane w funkcji pointget)"""
+
     def __init__(self, pos, picture_path):
         super().__init__()
         self.pos = pos
