@@ -50,6 +50,7 @@ one_player_mode = False
 SCORE = 0
 pointget_acc = 0
 inactive_bool = False
+gap = 147
 
 """
     Adresy obrazków i dźwięków
@@ -704,8 +705,6 @@ def start_1_player_mode(**info):
         move_trzmiel = False
         """ start_game przybiera wartość True gdy rozpoczęto grę"""
         start_game = False
-        """Wielkość szczeliny"""
-        gap = 147
         """ grupa trzmiela """
         trzmiel_group = pygame.sprite.Group(info['trzmiel'])
         while True:
@@ -761,24 +760,28 @@ def start_1_player_mode(**info):
                 results_window()
 
             """Kolizja"""
-            obstacle = pygame.sprite.spritecollideany(trzmiel, obstacle_group)
+            obstacle = pygame.sprite.spritecollideany(info['trzmiel'], obstacle_group, check_collision)
             if obstacle:
-                if abs(trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2 + trzmiel_size[1] / 2:
-                    # koniec gry
-                    info['trzmiel'].collision = True
-                    move_trzmiel = False
+                move_trzmiel = False
+                info['trzmiel'].collision = True
 
             """ Uaktualnienie widoku """
             pygame.display.flip()
             time_clock.tick(FPS)
 
 
-"""Klasa odpowiedzialna za pojawianie się na ekranie i animację przeszkody
-    oprócz tego pojawia niewidzialny próg na środku przeszkody, którego przekroczenie ma powodować zdobycie punktu
-    (zaimplementowane w funkcji pointget)"""
+def check_collision(trzmiel, obstacle):
+    obstacle_borders = (
+        obstacle.rect.centerx - obstacle.image.get_width() / 2, obstacle.rect.centerx + obstacle.image.get_width() / 2)
+    return obstacle_borders[0] < trzmiel.rect.centerx + trzmiel.image.get_width() / 2 < obstacle_borders[1] and abs(
+        trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2 + trzmiel_size[1] / 2
 
 
 class Obstacle(pygame.sprite.Sprite):
+    """Klasa odpowiedzialna za pojawianie się na ekranie i animację przeszkody
+        oprócz tego pojawia niewidzialny próg na środku przeszkody, którego przekroczenie ma powodować zdobycie punktu
+        (zaimplementowane w funkcji pointget)"""
+
     def __init__(self, pos, picture_path):
         super().__init__()
         self.pos = pos
@@ -825,9 +828,11 @@ def pointget(obst, trzmiel: TrzmielSprite):
             pygame.mixer.Channel(point_get_sound_channel).set_volume(0.5)
             pygame.mixer.Channel(point_get_sound_channel).play(game_sounds["point_get_sound"])
 
+
 def inactive():
     global inactive_bool
     inactive_bool = True
+
 
 def start_window():
     """
@@ -922,7 +927,7 @@ def start_window():
         if inactive_bool and inactive_acc < 40:
             display_screen_window.blit(game_images['inactive_button'], pygame.mouse.get_pos())
             inactive_acc += 1
-        else :
+        else:
             inactive_bool = False
             inactive_acc = 0
 
