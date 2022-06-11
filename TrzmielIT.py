@@ -805,7 +805,7 @@ class Obstacle(pygame.sprite.Sprite):
 """
     funkcja pointget przyjmuje:
      obst : Obstacle - przeszkoda, w której znajduje sie pole threshold
-     trzmiel : TrzmielSprite - grywalny ptak lotny B)
+     trzmiel : TrzmielSprite - grywalny ptak lotny
      SCORE - globalna zmienna przechowująca liczbę puntków gracza
      pointget_acc - akumulator globalny
      
