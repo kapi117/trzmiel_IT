@@ -36,7 +36,7 @@ import random
         służy do wywoływania funkcji pointget, domyślnie powinna zostać przeniesiona jako zmienna okna 1_player_mode
         lub jakkolwiek będzie się nazywać
 """
-FPS = 32
+FPS = 60
 src_width = 800
 src_height = 600
 display_screen_window = pygame.display.set_mode((src_width, src_height))
@@ -540,20 +540,15 @@ class TrzmielSprite(pygame.sprite.Sprite):
             center = self.rect.center
             self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
         if one_player_mode:
-            if not self.if_jumped:
-                """ sprawdzenie czy nastąpił skok """
-                if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
-                    self.y_velocity = 0
-                    self.y_velocity -= 15
-                    pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["jumping_sound"])
-                    pygame.mixer.Channel(jumping_sound_channel).set_volume(0.2)
-                    self.if_jumped = True
-            if self.if_jumped:
-                """ zliczanie opóźnienia """
-                self.delay += 1
-            if self.delay == 3:
+            """ sprawdzenie czy nastąpił skok """
+            if (keys[pygame.K_SPACE] or keys[pygame.K_UP]) and not self.if_jumped:
+                self.y_velocity = 0
+                self.y_velocity -= 15
+                pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["jumping_sound"])
+                pygame.mixer.Channel(jumping_sound_channel).set_volume(0.2)
+                self.if_jumped = True
+            elif not (keys[pygame.K_SPACE] or keys[pygame.K_UP]):
                 self.if_jumped = False
-                self.delay = 0
             self.gravitation_pull()
             center = self.rect.center
             self.rect = self.image.get_rect(center=(center[0], center[1] + self.y_velocity))
