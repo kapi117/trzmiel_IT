@@ -463,16 +463,21 @@ if __name__ == "__main__":
 game_highscores = open(r"data/highscores.txt", 'r+')
 
 """Klasa umożliwiająca zapisywanie i wyświetlanie 10 najlepszych wyników"""
-class Highscores_list():
+# TODO : (1) usuć kod poniżej
+# TODO : (2) przemyśl swoje zachowanie
+# TODO : (3) napisz kod ponownie
+# TODO : (4) wróć do punktu pierwszego ;)
+class Highscores_list(): # TODO : NA CHUJ TEN NAWIAS
     """
     :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
     :ivar self.best_ten: Lista przechowująca 10 najlepszych wyników
     :type self.best_ten: List[integer]
     """
 
-    def __init__(self, list, game_highscores):
+    def __init__(self, list, game_highscores): # ej po chuj ten list???
         self.best_ten = []
-        ten_lines = [0,1,2,3,4,5,6,7,8,9]
+        ten_lines = [0,1,2,3,4,5,6,7,8,9] # KURWA CO TAM SIĘ DZIEJE W TEJ LIŚCIE
+        # KURWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         for i, line in enumerate(game_highscores):
             if i in ten_lines:
                 if line != 0:
@@ -486,7 +491,8 @@ class Highscores_list():
         :param new_score: Nowy osiągnięty wynik
         :type new_score: integer
         """
-        for i,elem in self.best_ten:
+        # ej, bo co jak gram pierwszy raz ://////////
+        for i,elem in self.best_ten: # JA JESTEM LISTĄ I WEŹ MNIE TU NIE WKURWIAJ, PO CZYM TY CHCESZ ITEROWAĆ ZŁAMASIE
             if new_score > elem:
                 lower_scores=[x for x in self.best_ten[i:8]]
                 self.best_ten[i] = new_score
@@ -504,7 +510,9 @@ class Highscores_list():
         :function reset: Wymazanie zawartości pliku z wynikami
         """
         game_highscores.truncate(0)
-
+# TODO : EJ TAK NA POWAŻNIE TO TEGO NIŻEJ NIE USUWAJ BO KOD WYJEBIE
+# todo PS. JESTEM CAŁKOWICIE POWAŻNY
+# todo Przemysław Pukocz
 # class Obstacle(pygame.sprite.Sprite):
 #     def __init__(self, pos ,picture_path):
 #         super().__init__()
