@@ -400,7 +400,7 @@ class Numbers(pygame.sprite.Sprite):
         self.images = images
         self.image = images[self.number]
         self.rect = self.image.get_rect(center=center)
-
+        self.center = center
 
 class ScoreCounterONES(Numbers):
     """
@@ -417,11 +417,11 @@ class ScoreCounterONES(Numbers):
             odpowiedzialna za wydobywanie cyfry jedności ze zmiennej SCORE
         """
         if score < 10:
-            self.rect = self.image.get_rect(center=(85, 50))
+            self.rect = self.image.get_rect(center=(self.center[0]-38,self.center[1]))
         if 10 <= score < 100:
-            self.rect = self.image.get_rect(center=(105, 50))
+            self.rect = self.image.get_rect(center=(self.center[0]-19,self.center[1]))
         if 100 <= score < 1000:
-            self.rect = self.image.get_rect(center=(124, 50))
+            self.rect = self.image.get_rect(center=self.center)
         self.number = score % 10
         self.image = self.images[self.number]
         self.rect = self.image.get_rect(center=self.rect.center)
@@ -442,13 +442,13 @@ class ScoreCounterTENS(Numbers):
             odpowiedzialna za wydobywanie cyfry dziesiątek ze zmiennej SCORE
         """
         if 10 <= score < 100:
-            self.rect = self.image.get_rect(center=(67, 50))
+            self.rect = self.image.get_rect(center=(self.center[0]-19,self.center[1]))
             ones = score % 10
             self.number = int((score - ones) / 10)
             self.image = self.images[self.number]
             self.rect = self.image.get_rect(center=self.rect.center)
         if 100 <= score < 1000:
-            self.rect = self.image.get_rect(center=(85, 50))
+            self.rect = self.image.get_rect(center=self.center)
             ones = score % 10
             self.number = int(((score - ones) % 100) / 10)
             self.image = self.images[self.number]
@@ -670,6 +670,26 @@ def move_sprite_to(sprite, destination, speed):
         return True
 
 
+def show_number(ones_position, tens_position, hundreds_position):
+    global SCORE
+    ones = ScoreCounterONES(ones_position, game_images['numbers'])
+    tens = ScoreCounterTENS(tens_position, game_images['numbers'])
+    hundreds = ScoreCounterHUNDREDS(hundreds_position, game_images['numbers'])
+    group_ones = pygame.sprite.Group(ones)
+    group_tens = pygame.sprite.Group(tens)
+    group_hundreds = pygame.sprite.Group(hundreds)
+    if SCORE > 999:
+        SCORE = 0
+    group_ones.update(SCORE)
+    group_ones.draw(display_screen_window)
+    if SCORE > 9:
+        group_tens.update(SCORE)
+        group_tens.draw(display_screen_window)
+    if SCORE > 99:
+        group_hundreds.update(SCORE)
+        group_hundreds.draw(display_screen_window)
+
+
 def start_1_player_mode(**info):
     """
     :function start_1_player_mode:
@@ -745,17 +765,8 @@ def start_1_player_mode(**info):
             trzmiel_group.update(keys, move_trzmiel)
             trzmiel_group.draw(display_screen_window)
             """ sprawdzanie wyniku oraz odpowienie wyświetlanie """
-            if SCORE > 999:
-                SCORE = 0
             display_screen_window.blit(game_images['counter_background'], counter_background_positions)
-            counter_group_ones.update(SCORE)
-            counter_group_ones.draw(display_screen_window)
-            if SCORE > 9:
-                counter_group_tens.update(SCORE)
-                counter_group_tens.draw(display_screen_window)
-            if SCORE > 99:
-                counter_group_hundreds.update(SCORE)
-                counter_group_hundreds.draw(display_screen_window)
+            show_number(counter_ones_position, counter_tens_position, counter_hundreds_position)
 
             if open_results:
                 results_window()
