@@ -71,13 +71,9 @@ start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
-<<<<<<< HEAD
 game_obstacle_image = 'images/game/rura.png'
-=======
 start_inactive_button_image = 'images/start/inactive_button.png'
-
 icon_image = 'images/start/icon.png'
->>>>>>> 7ad62bd648a8d8c16056efcadf7a880381139061
 trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 number_table = [f'images/numbers/number_{x}.png' for x in range(10)]
 start_music = 'audio/theme_music.mp3'
