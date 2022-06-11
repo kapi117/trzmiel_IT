@@ -805,7 +805,7 @@ class Obstacle(pygame.sprite.Sprite):
 """
     funkcja pointget przyjmuje:
      obst : Obstacle - przeszkoda, w której znajduje sie pole threshold
-     trzmiel : TrzmielSprite - grywalny ptak lotny B)
+     trzmiel : TrzmielSprite - grywalny ptak lotny
      SCORE - globalna zmienna przechowująca liczbę puntków gracza
      pointget_acc - akumulator globalny
      
@@ -825,9 +825,11 @@ def pointget(obst, trzmiel: TrzmielSprite):
             pygame.mixer.Channel(point_get_sound_channel).set_volume(0.5)
             pygame.mixer.Channel(point_get_sound_channel).play(game_sounds["point_get_sound"])
 
+
 def inactive():
     global inactive_bool
     inactive_bool = True
+
 
 def start_window():
     """
@@ -922,7 +924,7 @@ def start_window():
         if inactive_bool and inactive_acc < 40:
             display_screen_window.blit(game_images['inactive_button'], pygame.mouse.get_pos())
             inactive_acc += 1
-        else :
+        else:
             inactive_bool = False
             inactive_acc = 0
 
