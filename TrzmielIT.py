@@ -50,6 +50,8 @@ one_player_mode = False
 SCORE = 0
 pointget_acc = 0
 inactive_bool = False
+game_highscores_file = open(r"data/highscores.txt", 'r+')
+HIGHSCORE = None
 
 """
     Adresy obrazków i dźwięków
@@ -128,6 +130,9 @@ counter_tens_position = (85, 50)
 counter_ones_position = (124, 50)
 counter_background_positions = (10, 10)
 results_background_position = (208, 108)
+highscore_hundreds_position = (362, 315)
+highscore_tens_position = (397, 315)
+highscore_ones_position = (432, 315)
 
 """
     Rozmiary obrazków : Tuple[int, int]
@@ -378,6 +383,8 @@ def settings_window():
 
 def results_window():
     display_screen_window.blit(game_images['results_background'], results_background_position)
+    HIGHSCORE.update(SCORE)
+    show_number(highscore_ones_position, highscore_tens_position, highscore_hundreds_position, HIGHSCORE.read()[0])
 
 
 class Numbers(pygame.sprite.Sprite):
@@ -402,6 +409,7 @@ class Numbers(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=center)
         self.center = center
 
+
 class ScoreCounterONES(Numbers):
     """
         :class ScoreCounterONES: Klasa pochodna od klasy Numbers,
@@ -417,9 +425,9 @@ class ScoreCounterONES(Numbers):
             odpowiedzialna za wydobywanie cyfry jedności ze zmiennej SCORE
         """
         if score < 10:
-            self.rect = self.image.get_rect(center=(self.center[0]-38,self.center[1]))
+            self.rect = self.image.get_rect(center=(self.center[0] - 38, self.center[1]))
         if 10 <= score < 100:
-            self.rect = self.image.get_rect(center=(self.center[0]-19,self.center[1]))
+            self.rect = self.image.get_rect(center=(self.center[0] - 19, self.center[1]))
         if 100 <= score < 1000:
             self.rect = self.image.get_rect(center=self.center)
         self.number = score % 10
@@ -442,7 +450,7 @@ class ScoreCounterTENS(Numbers):
             odpowiedzialna za wydobywanie cyfry dziesiątek ze zmiennej SCORE
         """
         if 10 <= score < 100:
-            self.rect = self.image.get_rect(center=(self.center[0]-19,self.center[1]))
+            self.rect = self.image.get_rect(center=(self.center[0] - 19, self.center[1]))
             ones = score % 10
             self.number = int((score - ones) / 10)
             self.image = self.images[self.number]
@@ -670,23 +678,26 @@ def move_sprite_to(sprite, destination, speed):
         return True
 
 
-def show_number(ones_position, tens_position, hundreds_position):
-    global SCORE
+# TODO : MARCELI SKOMENTUJ
+
+
+def show_number(ones_position, tens_position, hundreds_position, score):
+    """ Utworzenie liczników """
     ones = ScoreCounterONES(ones_position, game_images['numbers'])
     tens = ScoreCounterTENS(tens_position, game_images['numbers'])
     hundreds = ScoreCounterHUNDREDS(hundreds_position, game_images['numbers'])
     group_ones = pygame.sprite.Group(ones)
     group_tens = pygame.sprite.Group(tens)
     group_hundreds = pygame.sprite.Group(hundreds)
-    if SCORE > 999:
-        SCORE = 0
-    group_ones.update(SCORE)
+    if score > 999:
+        score = 0
+    group_ones.update(score)
     group_ones.draw(display_screen_window)
-    if SCORE > 9:
-        group_tens.update(SCORE)
+    if score > 9:
+        group_tens.update(score)
         group_tens.draw(display_screen_window)
-    if SCORE > 99:
-        group_hundreds.update(SCORE)
+    if score > 99:
+        group_hundreds.update(score)
         group_hundreds.draw(display_screen_window)
 
 
@@ -705,13 +716,7 @@ def start_1_player_mode(**info):
     start_disappear = True
     if one_player_mode:
         """ Tu już się zaczyna konkretny kod dla gry jednoosobowej"""
-        """ Utworzenie liczników """
-        ones = ScoreCounterONES(counter_ones_position, game_images['numbers'])
-        tens = ScoreCounterTENS(counter_tens_position, game_images['numbers'])
-        hundreds = ScoreCounterHUNDREDS(counter_hundreds_position, game_images['numbers'])
-        counter_group_ones = pygame.sprite.Group(ones)
-        counter_group_tens = pygame.sprite.Group(tens)
-        counter_group_hundreds = pygame.sprite.Group(hundreds)
+
         """ Poniżej tworze 4 obiekty klasy obstacle, odległe od siebie o 400 px pojawiające się za ekranem
         obiekty te są dodawane do grupy także można je wszystkie wywoływać i wpływać na nie za pomocą pojedynczych poleceń
         """
@@ -766,7 +771,7 @@ def start_1_player_mode(**info):
             trzmiel_group.draw(display_screen_window)
             """ sprawdzanie wyniku oraz odpowienie wyświetlanie """
             display_screen_window.blit(game_images['counter_background'], counter_background_positions)
-            show_number(counter_ones_position, counter_tens_position, counter_hundreds_position)
+            show_number(counter_ones_position, counter_tens_position, counter_hundreds_position, SCORE)
 
             if open_results:
                 results_window()
@@ -835,6 +840,55 @@ def pointget(obst, trzmiel: TrzmielSprite):
             pointget_acc = 0
             pygame.mixer.Channel(point_get_sound_channel).set_volume(0.5)
             pygame.mixer.Channel(point_get_sound_channel).play(game_sounds["point_get_sound"])
+
+
+"""Klasa umożliwiająca zapisywanie i wyświetlanie 10 najlepszych wyników"""
+
+
+class HighscoresList:
+    """
+    :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
+    :ivar self.best_ten: Lista przechowująca 10 najlepszych wyników
+    :type self.best_ten: List[integer]
+    """
+
+    def __init__(self, game_highscores):
+        self.best_ten = []
+        self.game_highscores = game_highscores
+        for i, line in enumerate(game_highscores):
+            if i in range(10):
+                if line != 0:
+                    self.best_ten.append(int(line.strip()))
+            elif i > 9:
+                break
+
+    def update(self, new_score):
+        """
+        :function update: Sprawdza czy nowy wynik nie jest wyższy od któregoś z najlepszych i jeśli tak to go wpisuje
+        :param new_score: Nowy osiągnięty wynik
+        :type new_score: integer
+        """
+        if not self.best_ten:
+            self.best_ten.append(new_score)
+        else:
+            for i, elem in enumerate(self.best_ten):
+                if new_score > elem:
+                    lower_scores = [x for x in self.best_ten[i:8]]
+                    self.best_ten[i] = new_score
+                    self.best_ten += lower_scores
+                    print(self.best_ten)
+
+    def read(self):
+        """
+        :function read: Odczyt 10 najlepszych wyników
+        """
+        return self.best_ten
+
+    def reset(self):
+        """
+        :function reset: Wymazanie zawartości pliku z wynikami
+        """
+        self.game_highscores.truncate(0)
 
 
 def inactive():
@@ -992,6 +1046,9 @@ if __name__ == "__main__":
     game_sounds["point_get_sound"] = pygame.mixer.Sound(point_get_sound)
     game_sounds["hit_sound"] = pygame.mixer.Sound(hit_sound)
 
+    """Wczytanie najwiekszego wyniku z pliku"""
+    HIGHSCORE = HighscoresList(game_highscores_file)
+
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
 
@@ -1005,47 +1062,3 @@ if __name__ == "__main__":
 """
  :game_highscores: Obiekt typu file odczytujący plik txt z wynikami
 """
-game_highscores = open(r"data/highscores.txt", 'r+')
-
-"""Klasa umożliwiająca zapisywanie i wyświetlanie 10 najlepszych wyników"""
-
-
-class Highscores_list():
-    """
-    :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
-    :ivar self.best_ten: Lista przechowująca 10 najlepszych wyników
-    :type self.best_ten: List[integer]
-    """
-
-    def __init__(self, list, game_highscores):
-        self.best_ten = []
-        for i, line in enumerate(game_highscores):
-            if i in range(10):
-                if line != 0:
-                    self.best_ten.append(line.strip())
-            elif i > 9:
-                break
-
-    def update(self, new_score):
-        """
-        :function update: Sprawdza czy nowy wynik nie jest wyższy od któregoś z najlepszych i jeśli tak to go wpisuje
-        :param new_score: Nowy osiągnięty wynik
-        :type new_score: integer
-        """
-        for i, elem in self.best_ten:
-            if new_score > elem:
-                lower_scores = [x for x in self.best_ten[i:8]]
-                self.best_ten[i] = new_score
-                self.best_ten += lower_scores
-
-    def read(self):
-        """
-        :function read: Odczyt 10 najlepszych wyników
-        """
-        return self.best_ten
-
-    def reset(self):
-        """
-        :function reset: Wymazanie zawartości pliku z wynikami
-        """
-        game_highscores.truncate(0)
