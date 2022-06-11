@@ -4,6 +4,7 @@ import pygame
 from pygame.locals import *
 import sys
 import random
+
 """
     TrzmielIT
     =========
@@ -31,8 +32,11 @@ import random
         True jeśli ma być otwrte okno, w innym przypadku False
     start_disappear : bool
         True jeśli ma zaniknąć okno startowe
+    pointget_acc : int
+        służy do wywoływania funkcji pointget, domyślnie powinna zostać przeniesiona jako zmienna okna 1_player_mode
+        lub jakkolwiek będzie się nazywać
 """
-FPS = 32
+FPS = 60
 src_width = 800
 src_height = 600
 display_screen_window = pygame.display.set_mode((src_width, src_height))
@@ -40,9 +44,11 @@ music_on = True
 sounds_on = True
 click = False
 open_settings = False
+open_results = False
 start_disappear = False
 one_player_mode = False
 SCORE = 0
+pointget_acc = 0
 
 """
     Adresy obrazków i dźwięków
@@ -71,9 +77,11 @@ start_title_image = 'images/start/title.png'
 start_button_1_player_image = 'images/start/Przycisk single.png'
 start_button_2_player_image = 'images/start/Przycisk multi.png'
 start_button_settings_image = 'images/settings/settings_icon.png'
+
 game_obstacle_image = 'images/game/rura.png'
 start_inactive_button_image = 'images/start/inactive_button.png'
 icon_image = 'images/start/icon.png'
+
 trzmiel_images = [f'images/start/Trzmiel{x}.png' for x in range(1, 5)]
 number_table = [f'images/numbers/number_{x}.png' for x in range(10)]
 start_music = 'audio/theme_music.mp3'
@@ -81,6 +89,7 @@ start_click_sound = 'sounds/click.wav'
 on_hover_sound = 'sounds/on_hover.wav'
 jumping_sound = 'sounds/jump.wav'
 counter_background = 'images/counter_background.png'
+point_get_sound = 'sounds/pointget.wav'
 
 settings_background_image = 'images/settings/settings.background.png'
 settings_title_image = 'images/settings/settings.title.png'
@@ -88,6 +97,8 @@ settings_button_pressed_image = 'images/settings/Nacisniety przycisk.png'
 settings_button_not_pressed_image = 'images/settings/przycisk.png'
 settings_speaker_image = 'images/settings/speaker.png'
 settings_note_image = 'images/settings/note.png'
+
+results_background_image = 'images/results/background_with_text.png'
 """
     Pozycje obrazków
     ----------------
@@ -115,13 +126,14 @@ counter_hundreds_position = (48, 50)
 counter_tens_position = (85, 50)
 counter_ones_position = (124, 50)
 counter_background_positions = (10, 10)
+results_background_position = (208, 108)
 
 """
     Rozmiary obrazków : Tuple[int, int]
     -----------------
 """
 start_button_settings_size = (50, 50)
-trzmiel_size = (120, 60)
+trzmiel_size = (60, 56)
 icon_size = (64, 32)
 settings_title_size = (305, 45)
 settings_button_pressed_size = (100, 100)
@@ -138,6 +150,7 @@ counter_background_size = (150, 85)
 start_music_channel = 0
 start_click_sound_channel = 1
 jumping_sound_channel = 2
+point_get_sound_channel = 3
 
 """ game_images : Dict[string, image.pyi]
         Słownik przechowujący obrazki
@@ -238,27 +251,6 @@ class ButtonSprite(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(image_to_show, image_to_show.get_size())
         self.rect = self.image.get_rect(center=self.rect.center)
 
-    def swipe_out(self):
-        """
-        Funkcja ustawiająca on_screen na False oraz obliczająca pożądane miejsce wysunięcia (do najbliższej krawędzi)
-        """
-        self.on_screen = False
-        """ do której krawędzi najbliżej """
-        closest_border = min(self.rect.centerx, src_width - self.rect.centerx, self.rect.centery,
-                             src_height - self.rect.centery)
-        if closest_border == self.rect.centerx:
-            """ najbliżej w lewo """
-            self.place_to_move = (-self.image.get_width() / 2 - 5, self.rect.centery)
-        elif closest_border == src_width - self.rect.centerx:
-            """ najbliżej w prawo"""
-            self.place_to_move = (src_width + self.image.get_width() / 2 + 5, self.rect.centery)
-        elif closest_border == self.rect.centery:
-            """ najbliżej w górę """
-            self.place_to_move = (self.rect.centerx, -self.image.get_height() / 2 - 5)
-        else:
-            """ najbliżej w dół """
-            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height() / 2 + 5)
-
     def set_on_click(self, func):
         """
         :function set_on_click: Funkcja przypisująca funkcję do uruchomienia przy naciśnięciu przycisku
@@ -300,6 +292,30 @@ class ButtonSprite(pygame.sprite.Sprite):
         else:
             """ jeśli nie ma być na ekranie """
             self.disappeared = move_sprite_to([self], self.place_to_move, self.disappear_speed)
+
+
+def swipe_out(sprites):
+    """
+    Funkcja ustawiająca on_screen na False oraz obliczająca pożądane miejsce wysunięcia (do najbliższej krawędzi)
+    :param sprites: Lista Sprite do wysunięcia
+    """
+    for sprite in sprites:
+        sprite.on_screen = False
+        """ do której krawędzi najbliżej """
+        closest_border = min(sprite.rect.centerx, src_width - sprite.rect.centerx, sprite.rect.centery,
+                             src_height - sprite.rect.centery)
+        if closest_border == sprite.rect.centerx:
+            """ najbliżej w lewo """
+            sprite.place_to_move = (-sprite.image.get_width(), sprite.rect.centery)
+        elif closest_border == src_width - sprite.rect.centerx:
+            """ najbliżej w prawo"""
+            sprite.place_to_move = (src_width + sprite.image.get_width(), sprite.rect.centery)
+        elif closest_border == sprite.rect.centery:
+            """ najbliżej w górę """
+            sprite.place_to_move = (sprite.rect.centerx, -sprite.image.get_height())
+        else:
+            """ najbliżej w dół """
+            sprite.place_to_move = (sprite.rect.centerx, src_height + sprite.image.get_height())
 
 
 def toggle_music():
@@ -357,6 +373,10 @@ def settings_window():
     display_screen_window.blit(game_images['settings_title'], settings_title_position)
     display_screen_window.blit(game_images['settings_speaker'], settings_speaker_position)
     display_screen_window.blit(game_images['settings_note'], settings_note_position)
+
+
+def results_window():
+    display_screen_window.blit(game_images['results_background'], results_background_position)
 
 
 class Numbers(pygame.sprite.Sprite):
@@ -493,6 +513,9 @@ class TrzmielSprite(pygame.sprite.Sprite):
         self.y_velocity = 0
         self.delay = 0
         self.if_jumped = False
+        self.rotation = 0
+        self.collision = False
+        self.stop = False
 
     def gravitation_pull(self):
         """
@@ -502,43 +525,52 @@ class TrzmielSprite(pygame.sprite.Sprite):
 
     def change_image(self):
         """
-        :function change_image: Funkcja zmieniająca obrazek na następny w liście
+        :function change_image: Funkcja zmieniająca obrazek na następny w liście, dodatkowo obracająca go
         """
-        self.current_index = (self.current_index + 1) % len(self.images)
-        self.image = self.images[self.current_index]
-        self.rect = self.image.get_rect(center=self.rect.center)
+        if not self.stop:
+            self.current_index = (self.current_index + 1) % len(self.images)
+            self.image = pygame.transform.rotate(self.images[self.current_index], self.rotation)
+            self.rect = self.image.get_rect(center=self.rect.center)
 
-    def update(self, keys):
+    def update(self, keys, move=False):
         """
             Funkcja wywoływana co tick zegara, ruch trzmiela góra dół (po osiągnięciu odpowiedniej szybkości zwalniamy)
             oraz możłiwość skoku trzmiela jeśli został odpalony tryb jednoosobowy,
             o zadaną wartość jeśli minęły 3 klatki od ostatniego skoku
         """
         self.change_image()
-        if not one_player_mode:
-            if self.grow > self.y_move:
-                self.mode = -1
-            if self.grow < -self.y_move:
-                self.mode = 1
-                """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
-            self.grow += 1 * self.mode
-            center = self.rect.center
-            self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
-        if one_player_mode:
-            if not self.if_jumped:
-                """ sprawdzenie czy nastąpił skok """
-                if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
-                    self.y_velocity = 0
-                    self.y_velocity -= 15
-                    pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["jumping_sound"])
-                    pygame.mixer.Channel(jumping_sound_channel).set_volume(0.2)
-                    self.if_jumped = True
-            if self.if_jumped:
-                """ zliczanie opóźnienia """
-                self.delay += 1
-            if self.delay == 3:
+        if not move:
+            if self.collision:
+                if self.rect.centery < src_height - self.image.get_height() / 3:
+                    """ animacja kolizji """
+                    self.rotation += 10
+                    self.gravitation_pull()
+                    center = self.rect.center
+                    self.rect = self.image.get_rect(center=(center[0], center[1] + self.y_velocity))
+                else:
+                    self.stop = True
+                    global open_results
+                    open_results = True
+            else:
+                """ animacja latania góra dół na oknie startowym i w oczekiwaniu na start """
+                if self.grow > self.y_move:
+                    self.mode = -1
+                if self.grow < -self.y_move:
+                    self.mode = 1
+                    """ ^^^ sprawdzanie czy powiększenie osiągneło skalowana wartość """
+                self.grow += 1 * self.mode
+                center = self.rect.center
+                self.rect = self.image.get_rect(center=(center[0], center[1] + self.grow))
+        else:
+            """ sprawdzenie czy nastąpił skok """
+            if (keys[pygame.K_SPACE] or keys[pygame.K_UP]) and not self.if_jumped:
+                self.y_velocity = 0
+                self.y_velocity -= 15
+                pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["jumping_sound"])
+                pygame.mixer.Channel(jumping_sound_channel).set_volume(0.2)
+                self.if_jumped = True
+            elif not (keys[pygame.K_SPACE] or keys[pygame.K_UP]):
                 self.if_jumped = False
-                self.delay = 0
             self.gravitation_pull()
             center = self.rect.center
             self.rect = self.image.get_rect(center=(center[0], center[1] + self.y_velocity))
@@ -585,27 +617,6 @@ class AnimateSprite(pygame.sprite.Sprite):
         self.place_to_move = center
         self.disappear_speed = 10
 
-    def swipe_out(self):
-        """
-        Funkcja ustawiająca on_screen na False oraz obliczająca pożądane miejsce wysunięcia (do najbliższej krawędzi)
-        """
-        self.on_screen = False
-        """ do której krawędzi najbliżej """
-        closest_border = min(self.rect.centerx, src_width - self.rect.centerx, self.rect.centery,
-                             src_height - self.rect.centery)
-        if closest_border == self.rect.centerx:
-            """ najbliżej w lewo """
-            self.place_to_move = (-self.image.get_width() / 2 - 10, self.rect.centery)
-        elif closest_border == src_width - self.rect.centerx:
-            """ najbliżej w prawo"""
-            self.place_to_move = (src_width + self.image.get_width() / 2 + 10, self.rect.centery)
-        elif closest_border == self.rect.centery:
-            """ najbliżej w górę """
-            self.place_to_move = (self.rect.centerx, -self.image.get_height() / 2 - 10)
-        else:
-            """ najbliżej w dół """
-            self.place_to_move = (self.rect.centerx, src_height + self.image.get_height() / 2 + 10)
-
     def update(self):
         """ Function update: Funkcja odpowiedzzialna za powiększanie lub zmneijszanie obrazku co skok zegara """
         if self.on_screen:
@@ -643,12 +654,20 @@ def move_sprite_to(sprite, destination, speed):
     if to_travel != (0, 0):
         """ Jeśli nie jest na odpowiednim miejscu to przesun w odpowiedni sposob"""
         if to_travel[0] == 0:
-            movement = [0, speed * to_travel[1] / abs(to_travel[1])]
+            if speed < abs(to_travel[1]):
+                movement = [0, speed * to_travel[1] / abs(to_travel[1])]
+            else:
+                movement = to_travel
         elif to_travel[1] == 0:
-            movement = [speed * to_travel[0] / abs(to_travel[0]), 0]
+            if speed < abs(to_travel[0]):
+                movement = [speed * to_travel[0] / abs(to_travel[0]), 0]
+            else:
+                movement = to_travel
         else:
             closer = min(to_travel)
-            movement = [speed * to_travel[0] / abs(closer), speed * to_travel[1] / abs(closer)]
+            speed_x = (speed if speed < abs(to_travel[0]) else to_travel[0])
+            speed_y = (speed if speed < abs(to_travel[1]) else to_travel[1])
+            movement = [speed_x * to_travel[0] / abs(closer), speed_y * to_travel[1] / abs(closer)]
         """ Przypisz środek po przesunięciu """
         sprite[0].rect = sprite[0].image.get_rect(center=(center[0] + movement[0], center[1] + movement[1]))
         return False
@@ -656,10 +675,153 @@ def move_sprite_to(sprite, destination, speed):
         return True
 
 
-def start_1_player_mode():
-    global start_disappear, one_player_mode
+def start_1_player_mode(**info):
+    """
+    :function start_1_player_mode:
+    :param info: Słownik argumentów potrzebnych przy rozpoczynaniu gry jednoosobowej
+        'acc' : wartość acc animacji tła
+        'main_screeen_motion' : wartość przesunięcia tła
+        'trzmiel' : TrzmielSprite
+    :return:
+    """
+
+    """ to się tyczy przygotowania (zanikanie okna startowego) """
+    global start_disappear
     start_disappear = True
-    one_player_mode = True
+    if one_player_mode:
+        """ Tu już się zaczyna konkretny kod dla gry jednoosobowej"""
+        """ Utworzenie liczników """
+        ones = ScoreCounterONES(counter_ones_position, game_images['numbers'])
+        tens = ScoreCounterTENS(counter_tens_position, game_images['numbers'])
+        hundreds = ScoreCounterHUNDREDS(counter_hundreds_position, game_images['numbers'])
+        counter_group_ones = pygame.sprite.Group(ones)
+        counter_group_tens = pygame.sprite.Group(tens)
+        counter_group_hundreds = pygame.sprite.Group(hundreds)
+        """ Poniżej tworze 4 obiekty klasy obstacle, odległe od siebie o 400 px pojawiające się za ekranem
+        obiekty te są dodawane do grupy także można je wszystkie wywoływać i wpływać na nie za pomocą pojedynczych poleceń
+        """
+        obstacle_group = pygame.sprite.Group()
+        for obst in range(3):
+            new_obst = Obstacle([1000 + obst * 400, random.randrange(80, 520)], "images/game/rura.png")
+            obstacle_group.add(new_obst)
+
+        """ move_trzmiel przybiera wartość True kiedy ma zacząć się ruszać """
+        move_trzmiel = False
+        """ start_game przybiera wartość True gdy rozpoczęto grę"""
+        start_game = False
+        """ grupa trzmiela """
+        trzmiel_group = pygame.sprite.Group(info['trzmiel'])
+        while True:
+            global SCORE, click
+            """ naciśnięte klawisze """
+            keys = pygame.key.get_pressed()
+            if not move_trzmiel and not info['trzmiel'].collision and (keys[K_SPACE] or keys[K_UP]):
+                """ rozpocznij ruch trzmiela po naciśnięciu spacji """
+                move_trzmiel = True
+                start_game = True
+            click = False
+            for event in pygame.event.get():
+                """ sprawdzanie czy nie użytkownik nie chce wyjść lub czy nie nacisnął myszki """
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == MOUSEBUTTONUP:
+                    click = True
+                    info['trzmiel'].collision = True
+                    move_trzmiel = False
+            """ Animacja tła oraz umiejscowienie tytułu """
+            info['acc'] += time_clock.tick(FPS)
+            while info['acc'] >= 1:
+                info['acc'] -= 1
+                if not info['trzmiel'].collision:
+                    info['main_screen_motion'] += 0.1
+                    if info['main_screen_motion'] >= 3202.0:
+                        info['main_screen_motion'] = 0
+                display_screen_window.blit(game_images['start_background'], (-info['main_screen_motion'], 0))
+            """ Rysowanie rur """
+            if start_game:
+                obstacle_group.draw(display_screen_window)
+            if move_trzmiel:
+                obstacle_group.update()
+                """sprawdzanie czy gracz zdobył punkt"""
+                for el in obstacle_group:
+                    pointget(el, info['trzmiel'])
+            """ Trzmiel """
+            trzmiel_group.update(keys, move_trzmiel)
+            trzmiel_group.draw(display_screen_window)
+            """ sprawdzanie wyniku oraz odpowienie wyświetlanie """
+            if SCORE > 999:
+                SCORE = 0
+            display_screen_window.blit(game_images['counter_background'], counter_background_positions)
+            counter_group_ones.update(SCORE)
+            counter_group_ones.draw(display_screen_window)
+            if SCORE > 9:
+                counter_group_tens.update(SCORE)
+                counter_group_tens.draw(display_screen_window)
+            if SCORE > 99:
+                counter_group_hundreds.update(SCORE)
+                counter_group_hundreds.draw(display_screen_window)
+
+            if open_results:
+                results_window()
+
+            """ Uaktualnienie widoku """
+            pygame.display.flip()
+            time_clock.tick(FPS)
+
+
+"""Klasa odpowiedzialna za pojawianie się na ekranie i animację przeszkody
+    oprócz tego pojawia niewidzialny próg na środku przeszkody, którego przekroczenie ma powodować zdobycie punktu
+    (zaimplementowane w funkcji pointget)"""
+
+
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self, pos, picture_path):
+        super().__init__()
+        self.pos = pos
+        self.image = pygame.transform.scale(pygame.image.load(picture_path), (100, 1150))
+        self.rect = self.image.get_rect(center=self.pos)
+        """threshold to rectangle służący do sprawdzania czy gracz zdobył punkt
+        po wyśrodkowaniu grafiki poniżej wartość (self.pos[0],self.pos[1]-53) nalezy zastąpić
+        poprostu self.pos i analogicznie w update center"""
+        self.threshold = pygame.Rect(self.pos, (1, self.image.get_height())).move(0, -self.image.get_height() / 2)
+
+    """funkcja update powoduje pomniejszenie położenia x przeszkody o 5 pikseli zgodnie z zegarem"""
+
+    def update(self):
+        center = self.rect.center
+        self.rect = self.image.get_rect(center=(center[0] - 5, center[1]))
+        self.threshold = pygame.Rect(center, (1, self.image.get_height())).move(0, -self.image.get_height() / 2)
+        pygame.draw.rect(display_screen_window, (34, 123, 32), self.threshold)
+        """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
+        if center[0] == -200:
+            """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
+             oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów"""
+            self.rect = self.image.get_rect(center=(1000, random.randrange(80, 520)))
+
+
+"""
+    funkcja pointget przyjmuje:
+     obst : Obstacle - przeszkoda, w której znajduje sie pole threshold
+     trzmiel : TrzmielSprite - grywalny ptak lotny B)
+     SCORE - globalna zmienna przechowująca liczbę puntków gracza
+     pointget_acc - akumulator globalny
+     
+     Okazuje się że trzmiel koliduje z threshold dokładnie 24 razy przy przelocie przez jedną przeszkodę,
+     w związku z tym funkcja liczy do 24 za pomocą funkcji pointget, aby następnie powiększyć SCORE o 1
+"""
+
+
+def pointget(obst, trzmiel: TrzmielSprite):
+    global SCORE
+    global pointget_acc
+    if obst.threshold.colliderect(trzmiel):
+        pointget_acc += 1
+        if pointget_acc >= 12:
+            SCORE += 1
+            pointget_acc = 0
+            pygame.mixer.Channel(point_get_sound_channel).set_volume(0.5)
+            pygame.mixer.Channel(point_get_sound_channel).play(game_sounds["point_get_sound"])
 
 
 def start_window():
@@ -674,30 +836,23 @@ def start_window():
     """
     all_sprites = []
     button_1_player = ButtonSprite(game_images['start_button_1_player'], start_button_1_player_position)
-    button_1_player.set_on_click(start_1_player_mode)
     button_2_player = ButtonSprite(game_images['start_button_2_player'], start_button_2_player_position)
     button_settings = ButtonSprite(game_images['start_button_settings'], start_button_settings_position)
-    button_settings.set_on_click(toggle_settings_window)
     all_sprites.extend([button_1_player, button_2_player, button_settings])
     button_sound = ButtonSprite(game_images['settings_button_not_pressed'], settings_button_position_1, sounds_on)
     button_music = ButtonSprite(game_images['settings_button_not_pressed'], settings_button_position_2, music_on)
     """ Przypisanie reakcji na nacisniecie """
+    button_settings.set_on_click(toggle_settings_window)
     button_music.set_image_clicked(game_images['settings_button_pressed'])
     button_sound.set_image_clicked(game_images['settings_button_pressed'])
     button_music.set_on_click(toggle_music)
     button_sound.set_on_click(toggle_sounds)
+    button_1_player.set_on_click(start_1_player_mode)
 
     """ Utworzenie trzmiela """
     trzmiel = TrzmielSprite(start_trzmiel_position, game_images['trzmiel'])
     trzmiel_group = pygame.sprite.Group(trzmiel)
 
-    """ Utowrzenie liczników """
-    ones = ScoreCounterONES(counter_ones_position, game_images['numbers'])
-    tens = ScoreCounterTENS(counter_tens_position, game_images['numbers'])
-    hundreds = ScoreCounterHUNDREDS(counter_hundreds_position, game_images['numbers'])
-    counter_group_ones = pygame.sprite.Group(ones)
-    counter_group_tens = pygame.sprite.Group(tens)
-    counter_group_hundreds = pygame.sprite.Group(hundreds)
     """ Utworzenie animacji tytułu """
     title_animation = AnimateSprite(animation_title_position,
                                     pygame.image.load(start_title_image), 40)
@@ -715,9 +870,7 @@ def start_window():
     inactive_acc = 0
     while True:
         """ Dla każdego eventu, jeśli krzyżyk lub ESC to wyjście z gry"""
-        global click, start_disappear, SCORE
-        if SCORE > 999:
-            SCORE = 0
+        global click, start_disappear, SCORE, one_player_mode
         keys = pygame.key.get_pressed()
         click = False
         for event in pygame.event.get():
@@ -740,19 +893,8 @@ def start_window():
         buttons.draw(display_screen_window)
         trzmiel_group.update(keys)
         trzmiel_group.draw(display_screen_window)
-        if one_player_mode:
-            display_screen_window.blit(game_images['counter_background'], counter_background_positions)
-            counter_group_ones.update(SCORE)
-            counter_group_ones.draw(display_screen_window)
-            if SCORE > 9:
-                counter_group_tens.update(SCORE)
-                counter_group_tens.draw(display_screen_window)
-            if SCORE > 99:
-                counter_group_hundreds.update(SCORE)
-                counter_group_hundreds.draw(display_screen_window)
         if start_disappear:
-            for sprite in all_sprites:
-                sprite.swipe_out()
+            swipe_out(all_sprites)
             start_disappear = False
         if open_settings:
             """ jeśli okienko ma być otwarte narysuj je i załącz przyciski od ustawień """
@@ -761,6 +903,15 @@ def start_window():
             buttons_settings.draw(display_screen_window)
         else:
             buttons.update()
+
+        """ Sprawdzam czy wszystkie obrazki wysunięte """
+        end_start = True
+        for sprite in all_sprites:
+            end_start = end_start and sprite.disappeared
+        """ Jeśli wszystkie zniknęły to mamy tryb jednoosobowy """
+        if end_start:
+            one_player_mode = True
+            return acc, main_screen_motion, trzmiel
 
         """ Nieaktywny guzik """
         if (click and check_if_clicked(pygame.mouse.get_pos(), (
@@ -815,17 +966,23 @@ if __name__ == "__main__":
         range(10)]
     game_images['counter_background'] = pygame.transform.scale(
         pygame.image.load(counter_background).convert_alpha(), counter_background_size)
+    game_images['results_background'] = pygame.image.load(results_background_image).convert_alpha()
+
     """ Przypisanie dźwięków do game_sounds na podstawie ich ścieżek """
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
     game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
     game_sounds["on_hover_sound"] = pygame.mixer.Sound(on_hover_sound)
     game_sounds["jumping_sound"] = pygame.mixer.Sound(jumping_sound)
-
+    game_sounds["point_get_sound"] = pygame.mixer.Sound(point_get_sound)
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
 
     """ Okno startowe """
-    start_window()
+    acc, main_screen_motion, trzmiel = start_window()
+
+    """ Gra jednoosobowa """
+    if one_player_mode:
+        start_1_player_mode(acc=acc, main_screen_motion=main_screen_motion, trzmiel=trzmiel)
 
 """
  :game_highscores: Obiekt typu file odczytujący plik txt z wynikami
@@ -833,6 +990,8 @@ if __name__ == "__main__":
 game_highscores = open(r"data/highscores.txt", 'r+')
 
 """Klasa umożliwiająca zapisywanie i wyświetlanie 10 najlepszych wyników"""
+
+
 class Highscores_list():
     """
     :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
@@ -842,7 +1001,7 @@ class Highscores_list():
 
     def __init__(self, list, game_highscores):
         self.best_ten = []
-        ten_lines = [0,1,2,3,4,5,6,7,8,9]
+        ten_lines = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         for i, line in enumerate(game_highscores):
             if i in ten_lines:
                 if line != 0:
@@ -850,15 +1009,15 @@ class Highscores_list():
             elif i > 9:
                 break
 
-    def update(self,new_score):
+    def update(self, new_score):
         """
         :function update: Sprawdza czy nowy wynik nie jest wyższy od któregoś z najlepszych i jeśli tak to go wpisuje
         :param new_score: Nowy osiągnięty wynik
         :type new_score: integer
         """
-        for i,elem in self.best_ten:
+        for i, elem in self.best_ten:
             if new_score > elem:
-                lower_scores=[x for x in self.best_ten[i:8]]
+                lower_scores = [x for x in self.best_ten[i:8]]
                 self.best_ten[i] = new_score
                 self.best_ten += lower_scores
 
@@ -868,27 +1027,8 @@ class Highscores_list():
         """
         return self.best_ten
 
-
     def reset(self):
         """
         :function reset: Wymazanie zawartości pliku z wynikami
         """
         game_highscores.truncate(0)
-
-# class Obstacle(pygame.sprite.Sprite):
-#     def __init__(self, pos ,picture_path):
-#         super().__init__()
-#         self.pos = pos
-#         self.image = pygame.image.load(picture_path)
-#         self.rect = self.image.get_rect(center=self.pos)
-#
-#     """funkcja update powoduje pomniejszenie położenia x przeszkody o 10 pikseli zgodnie z zegarem"""
-#     """ adres rury został dodany jako :game_obstacle_image: string  """
-#     def update(self):
-#         center = self.rect.center
-#         self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
-#         """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
-#         if center[0] == -200:
-#             """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
-#              oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów"""
-#             self.rect = self.image.get_rect(center=(1000, random.randrange(60,540)))
