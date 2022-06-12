@@ -107,6 +107,13 @@ settings_note_image = 'images/settings/note.png'
 results_background_image = 'images/results/background_with_text.png'
 results_return_image = 'images/results/POWROT.png'
 results_restart_image = 'images/results/RESTART.png'
+""" Tworzenie obrazka z cytatu """
+quotes = open("data/quotes.txt", encoding="utf-8")
+trzmiel_quotes = quotes.read()
+trzmiel_quotes_table = trzmiel_quotes.split("\n")
+pygame.font.init()
+Font = pygame.font.SysFont("Comic Sans MS" , 16)
+quote = pygame.font.Font.render(Font, trzmiel_quotes_table[random.randint(0,len(trzmiel_quotes_table))], False, [255, 255, 255])
 """
     Pozycje obrazków
     ----------------
@@ -143,6 +150,7 @@ score_tens_position = (397, 225)
 score_ones_position = (432, 225)
 results_return_position = (300, 380)
 results_restart_position = (490, 380)
+quote_positions = (400, 220)
 
 """
     Rozmiary obrazków : Tuple[int, int]
@@ -932,7 +940,6 @@ def inactive():
     global inactive_bool
     inactive_bool = True
 
-
 def start_window():
     """
     :function start_window: Funkcja odpowiedzialna za działanie okna startowego
@@ -965,7 +972,11 @@ def start_window():
     """ Utworzenie animacji tytułu """
     title_animation = AnimateSprite(animation_title_position,
                                     pygame.image.load(start_title_image), 40)
+    quote_animation = AnimateSprite(quote_positions, game_images['quote'], 40)
+    quote_group = pygame.sprite.Group(quote_animation)
     all_sprites.append(title_animation)
+    all_sprites.append(quote_animation)
+
     buttons = pygame.sprite.Group(button_1_player, button_2_player, title_animation)
     group_button_settings = pygame.sprite.Group(button_settings)
     buttons_settings = pygame.sprite.Group(button_music, button_sound)
@@ -984,6 +995,7 @@ def start_window():
         click = False
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                quotes.close()
                 pygame.quit()
                 sys.exit()
             elif event.type == MOUSEBUTTONUP:
@@ -999,6 +1011,8 @@ def start_window():
         """ update() przyciski oraz wyrysowanie ich na ekran """
         group_button_settings.update()
         group_button_settings.draw(display_screen_window)
+        quote_group.update()
+        quote_group.draw(display_screen_window)
         buttons.draw(display_screen_window)
         trzmiel_group.update(keys)
         trzmiel_group.draw(display_screen_window)
@@ -1074,6 +1088,7 @@ if __name__ == "__main__":
     game_images['counter_background'] = pygame.transform.scale(
         pygame.image.load(counter_background).convert_alpha(), counter_background_size)
     game_images['results_background'] = pygame.image.load(results_background_image).convert_alpha()
+    game_images['quote'] = quote.convert_alpha()
     game_images['results_return'] = pygame.transform.smoothscale(
         pygame.image.load(results_return_image).convert_alpha(), results_return_size)
     game_images['results_restart'] = pygame.transform.smoothscale(
