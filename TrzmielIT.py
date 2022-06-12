@@ -103,10 +103,11 @@ results_background_image = 'images/results/background_with_text.png'
 
 quotes = open("data/quotes.txt", encoding="utf-8")
 trzmiel_quotes = quotes.read()
-trzmiel_quotes_table = trzmiel_quotes.split("\n")
+trzmiel_quotes_table = trzmiel_quotes.split('\n')
 pygame.font.init()
+quote_text = trzmiel_quotes_table[random.randint(0,len(trzmiel_quotes_table))]
 Font = pygame.font.SysFont("Comic Sans MS" , 16)
-quote = pygame.font.Font.render(Font, trzmiel_quotes_table[random.randint(0,len(trzmiel_quotes_table))], False, [255, 255, 255])
+quote_image = pygame.font.Font.render(Font, quote_text, False, [255, 255, 255])
 """
     Pozycje obrazków
     ----------------
@@ -874,7 +875,7 @@ def start_window():
     quote_animation = AnimateSprite(quote_positions, game_images['quote'], 40)
     quote_group = pygame.sprite.Group(quote_animation)
     all_sprites.append(title_animation)
-    #all_sprites.append(quote_animation)
+    all_sprites.append(quote_animation)
 
     buttons = pygame.sprite.Group(button_1_player, button_2_player, title_animation)
     group_button_settings = pygame.sprite.Group(button_settings)
@@ -987,7 +988,7 @@ if __name__ == "__main__":
     game_images['counter_background'] = pygame.transform.scale(
         pygame.image.load(counter_background).convert_alpha(), counter_background_size)
     game_images['results_background'] = pygame.image.load(results_background_image).convert_alpha()
-    game_images['quote'] = quote.convert_alpha()
+    game_images['quote'] = quote_image.convert_alpha()
     """ Przypisanie dźwięków do game_sounds na podstawie ich ścieżek """
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
     game_sounds["click_sound"] = pygame.mixer.Sound(start_click_sound)
