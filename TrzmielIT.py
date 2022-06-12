@@ -865,7 +865,7 @@ funckja w celu sprawdzania kolizji wykorzystuje środek trzmiela, z tego względ
 def check_collision(trzmiel, obstacle):
     obstacle_borders = (
         obstacle.rect.centerx - obstacle.image.get_width() / 2, obstacle.rect.centerx + obstacle.image.get_width() / 2)
-    return obstacle_borders[0] < trzmiel.rect.centerx + trzmiel.image.get_width() / 2 < obstacle_borders[1] and abs(
+    return (obstacle_borders[0] < trzmiel.rect.centerx + trzmiel.image.get_width() / 2) and (trzmiel.rect.centerx - trzmiel.image.get_width() / 2 < obstacle_borders[1]) and abs(
         trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2
 
 
