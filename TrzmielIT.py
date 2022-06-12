@@ -103,6 +103,8 @@ settings_speaker_image = 'images/settings/speaker.png'
 settings_note_image = 'images/settings/note.png'
 
 results_background_image = 'images/results/background_with_text.png'
+results_return_image = 'images/results/POWROT.png'
+results_restart_image = 'images/results/RESTART.png'
 """
     Pozycje obrazków
     ----------------
@@ -137,6 +139,8 @@ highscore_ones_position = (432, 315)
 score_hundreds_position = (362, 225)
 score_tens_position = (397, 225)
 score_ones_position = (432, 225)
+results_return_position = (300, 380)
+results_restart_position = (490, 380)
 
 """
     Rozmiary obrazków : Tuple[int, int]
@@ -153,6 +157,8 @@ settings_note_size = (100, 100)
 inactive_button_size = (260, 120)
 number_size = (30, 38)
 counter_background_size = (150, 85)
+results_return_size = (150, 45)
+results_restart_size = (150, 45)
 
 """
     Nr kanałów dla poszczególnych dźwięków
@@ -738,6 +744,11 @@ def start_1_player_mode(**info):
         gap = 147
         """ grupa trzmiela """
         trzmiel_group = pygame.sprite.Group(info['trzmiel'])
+
+        """ Przyciski """
+        button_return = ButtonSprite(game_images['results_return'], results_return_position)
+        button_restart = ButtonSprite(game_images['results_restart'], results_restart_position)
+        buttons_group = pygame.sprite.Group(button_restart, button_return)
         while True:
             global SCORE, click
             """ naciśnięte klawisze """
@@ -780,6 +791,8 @@ def start_1_player_mode(**info):
 
             if open_results:
                 results_window()
+                buttons_group.update()
+                buttons_group.draw(display_screen_window)
 
             """Kolizja"""
             obstacle = pygame.sprite.spritecollideany(info['trzmiel'], obstacle_group, check_collision)
@@ -1046,6 +1059,10 @@ if __name__ == "__main__":
     game_images['counter_background'] = pygame.transform.scale(
         pygame.image.load(counter_background).convert_alpha(), counter_background_size)
     game_images['results_background'] = pygame.image.load(results_background_image).convert_alpha()
+    game_images['results_return'] = pygame.transform.smoothscale(
+        pygame.image.load(results_return_image).convert_alpha(), results_return_size)
+    game_images['results_restart'] = pygame.transform.smoothscale(
+        pygame.image.load(results_restart_image).convert_alpha(), results_restart_size)
 
     """ Przypisanie dźwięków do game_sounds na podstawie ich ścieżek """
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
