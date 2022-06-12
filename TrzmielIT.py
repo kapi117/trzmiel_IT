@@ -472,7 +472,7 @@ class Highscores_list:
     """
 
     def __init__(self, game_highscores):
-        with open (game_highscores,'r+') as f:
+        with open (game_highscores,'r') as f:
             self.best_ten = []
             for i, line in enumerate(f):
                 for i in range(10):
@@ -487,6 +487,8 @@ class Highscores_list:
         :param new_score: Nowy osiągnięty wynik
         :type new_score: integer
         """
+        if not self.best_ten:
+            self.best_ten.append(new_score)
 
         for i in range(10):
             if new_score > self.best_ten[i]:
