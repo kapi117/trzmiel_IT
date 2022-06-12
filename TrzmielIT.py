@@ -411,6 +411,8 @@ class Numbers(pygame.sprite.Sprite):
             :type self.image: image.pyi
             :ivar self.rect: Prostokąt do wyświetlania cyfry
             :type self.rect: pygame.Surface
+            :ivar self.center: Przechowuje dane o środku grafiki
+            :type self.center: (int, int)
 
     """
 
@@ -691,7 +693,14 @@ def move_sprite_to(sprite, destination, speed):
         return True
 
 
-# TODO : MARCELI SKOMENTUJ
+"""Funkcja służąca do wyświetlania liczby (w domyśle punktów)
+    Przyjmuje pozycje cyfr jedności, dziesiątek, setek, w zależności od potrzeb
+    oraz zmienną którą ma wyświetlać, gdzie
+    ones_position -> (int,int)
+    tens_position -> (int,int)
+    hundrets_position -> (int, int)
+    score -> int
+    """
 
 
 def show_number(ones_position, tens_position, hundreds_position, score):
