@@ -52,7 +52,7 @@ one_player_mode = False
 SCORE = 0
 pointget_acc = 0
 inactive_bool = False
-game_highscores_file = open(r"data/highscores.txt", 'r+')
+game_highscores = r"data/highscores.txt"
 HIGHSCORE = None
 gap = 98
 PROGRAM_RUNNING = True
@@ -924,25 +924,26 @@ def pointget(obst, trzmiel: TrzmielSprite):
 """Klasa umożliwiająca zapisywanie i wyświetlanie 10 najlepszych wyników"""
 
 
-class HighscoresList:
+class Highscores_list:
     """
     :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
     :ivar self.best_ten: Lista przechowująca 10 najlepszych wyników
     :type self.best_ten: List[integer]
-    Klasa przyjmuje za self.game_highscores zmienną globalną game_highscores
     """
 
     def __init__(self, game_highscores):
-        self.best_ten = []
-        self.game_highscores = game_highscores
-        for i, line in enumerate(game_highscores):
-            if i in range(10):
-                if line != 0:
-                    self.best_ten.append(int(line.strip()))
-            elif i > 9:
-                break
+        with open (game_highscores,'r') as f:
+            self.best_ten = []
+            for i, line in enumerate(f):
+                for i in range(10):
+                    if line != 0:
+                        self.best_ten.append(line.strip())
+                    else:
+                        f.close()
+                        break
+            f.close()
 
-    def update(self, new_score):
+    def update(self,new_score):
         """
         :function update: Sprawdza czy nowy wynik nie jest wyższy od któregoś z najlepszych i jeśli tak to go wpisuje
         :param new_score: Nowy osiągnięty wynik
@@ -950,13 +951,20 @@ class HighscoresList:
         """
         if not self.best_ten:
             self.best_ten.append(new_score)
-        else:
-            for i, elem in enumerate(self.best_ten):
-                if new_score > elem:
-                    lower_scores = [x for x in self.best_ten[i:8]]
-                    self.best_ten[i] = new_score
-                    self.best_ten += lower_scores
-                    print(self.best_ten)
+
+        for i in range(10):
+            if new_score > self.best_ten[i]:
+                lower_scores = [x for x in self.best_ten[i:8]]
+                self.best_ten[i] = new_score
+                self.best_ten += lower_scores
+                break
+
+        with open(game_highscores, 'w') as f:
+            f.truncate(0)
+            for i in range(10):
+                f.write(self.best_ten[i])
+                f.write("/n")
+
 
     def read(self):
         """
@@ -964,11 +972,6 @@ class HighscoresList:
         """
         return self.best_ten
 
-    def reset(self):
-        """
-        :function reset: Wymazanie zawartości pliku z wynikami
-        """
-        self.game_highscores.truncate(0)
 
 
 def inactive():
