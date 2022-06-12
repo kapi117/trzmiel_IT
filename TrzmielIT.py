@@ -55,6 +55,10 @@ inactive_bool = False
 game_highscores_file = open(r"data/highscores.txt", 'r+')
 HIGHSCORE = None
 gap = 98
+PROGRAM_RUNNING = True
+START_WINDOW = True
+RESTART_1_PLAYER = False
+RETURN_TO_MENU = False
 
 """
     Adresy obrazków i dźwięków
@@ -367,6 +371,16 @@ def toggle_sounds():
         pygame.mixer.Channel(start_click_sound_channel).set_volume(1.0)
     else:
         pygame.mixer.Channel(start_click_sound_channel).set_volume(0.0)
+
+
+def restart_1_player():
+    global RESTART_1_PLAYER
+    RESTART_1_PLAYER = True
+
+
+def return_to_menu():
+    global RETURN_TO_MENU
+    RETURN_TO_MENU = True
 
 
 def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, int]) -> bool:
@@ -751,14 +765,17 @@ def start_1_player_mode(**info):
         move_trzmiel = False
         """ start_game przybiera wartość True gdy rozpoczęto grę"""
         start_game = False
-        """Wielkość szczeliny"""
-        gap = 147
+
+        if not info['trzmiel']:
+            info['trzmiel'] = TrzmielSprite(start_trzmiel_position, game_images['trzmiel'])
         """ grupa trzmiela """
         trzmiel_group = pygame.sprite.Group(info['trzmiel'])
 
         """ Przyciski """
         button_return = ButtonSprite(game_images['results_return'], results_return_position)
+        button_return.set_on_click(return_to_menu)
         button_restart = ButtonSprite(game_images['results_restart'], results_restart_position)
+        button_restart.set_on_click(restart_1_player)
         buttons_group = pygame.sprite.Group(button_restart, button_return)
         while True:
             global SCORE, click
@@ -808,6 +825,8 @@ def start_1_player_mode(**info):
             """Kolizja"""
             obstacle = pygame.sprite.spritecollideany(info['trzmiel'], obstacle_group, check_collision)
             if obstacle:
+                if move_trzmiel:
+                    pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["hit_sound"])
                 move_trzmiel = False
                 info['trzmiel'].collision = True
 
@@ -815,9 +834,14 @@ def start_1_player_mode(**info):
             pygame.display.flip()
             time_clock.tick(FPS)
 
+            if RESTART_1_PLAYER or RETURN_TO_MENU:
+                return acc, main_screen_motion
+
+
 """Funkcja sprawdzająca kolizje trzmiela z przeszkodami
 funckja w celu sprawdzania kolizji wykorzystuje środek trzmiela, z tego względu granice mają postać taką a nie inną ;)
 """
+
 
 def check_collision(trzmiel, obstacle):
     obstacle_borders = (
@@ -860,7 +884,7 @@ class Obstacle(pygame.sprite.Sprite):
      trzmiel : TrzmielSprite - grywalny ptak lotny
      SCORE - globalna zmienna przechowująca liczbę puntków gracza
      pointget_acc - akumulator globalny
-     
+
      Okazuje się że trzmiel koliduje z threshold dokładnie 24 razy przy przelocie przez jedną przeszkodę,
      w związku z tym funkcja liczy do 24 za pomocą funkcji pointget, aby następnie powiększyć SCORE o 1
 """
@@ -969,9 +993,6 @@ def start_window():
     buttons = pygame.sprite.Group(button_1_player, button_2_player, title_animation)
     group_button_settings = pygame.sprite.Group(button_settings)
     buttons_settings = pygame.sprite.Group(button_music, button_sound)
-    """ Rozpoczęcie grania muzyczki w nieskończonej pętli """
-    pygame.mixer.Channel(start_music_channel).play(game_sounds["start_music"], -1)
-    pygame.mixer.Channel(start_music_channel).set_volume(0.2)
     """ akumulator wykorzystywany w animacji tła, oraz zmienna wyrażająca szybkość poruszania się tła"""
     acc = 0.0
     main_screen_motion = 1
@@ -1092,13 +1113,35 @@ if __name__ == "__main__":
 
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
+    """ Rozpoczęcie grania muzyczki w nieskończonej pętli """
+    pygame.mixer.Channel(start_music_channel).play(game_sounds["start_music"], -1)
+    pygame.mixer.Channel(start_music_channel).set_volume(0.2)
 
-    """ Okno startowe """
-    acc, main_screen_motion, trzmiel = start_window()
+    acc = 0.0
+    main_screen_motion = 0.0
+    while PROGRAM_RUNNING:
+        trzmiel = None
+        if START_WINDOW:
+            """ Okno startowe """
+            acc, main_screen_motion, trzmiel = start_window()
 
-    """ Gra jednoosobowa """
-    if one_player_mode:
-        start_1_player_mode(acc=acc, main_screen_motion=main_screen_motion, trzmiel=trzmiel)
+        """ Gra jednoosobowa """
+        if one_player_mode:
+            acc, main_screen_motion = start_1_player_mode(acc=acc, main_screen_motion=main_screen_motion,
+                                                          trzmiel=trzmiel)
+        if RETURN_TO_MENU:
+            START_WINDOW = True
+            one_player_mode = False
+        elif RESTART_1_PLAYER:
+            START_WINDOW = False
+            one_player_mode = True
+
+        open_results = False
+        start_disappear = False
+        SCORE = 0
+        pointget_acc = 0
+        RETURN_TO_MENU = False
+        RESTART_1_PLAYER = False
 
 """
  :game_highscores: Obiekt typu file odczytujący plik txt z wynikami
