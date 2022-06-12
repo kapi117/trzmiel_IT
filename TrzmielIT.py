@@ -100,14 +100,17 @@ settings_speaker_image = 'images/settings/speaker.png'
 settings_note_image = 'images/settings/note.png'
 
 results_background_image = 'images/results/background_with_text.png'
-
+""" Tworzenie cytatu jako obrazka """
 quotes = open("data/quotes.txt", encoding="utf-8")
 trzmiel_quotes = quotes.read()
 trzmiel_quotes_table = trzmiel_quotes.split('\n')
 pygame.font.init()
-quote_text = trzmiel_quotes_table[random.randint(0,len(trzmiel_quotes_table))]
-Font = pygame.font.SysFont("Comic Sans MS" , 16)
-quote_image = pygame.font.Font.render(Font, quote_text, False, [255, 255, 255])
+quote_index = random.randint(0,len(trzmiel_quotes_table))-1
+quote_text = trzmiel_quotes_table[quote_index]
+Font = pygame.font.SysFont("OCR-A BT" , 20)
+Font.set_bold(False)
+Font.set_italic(True)
+quote_image = pygame.font.Font.render(Font, quote_text, False, [255, 241, 150])
 """
     Pozycje obrazków
     ----------------
