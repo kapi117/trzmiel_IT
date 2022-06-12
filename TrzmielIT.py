@@ -35,6 +35,8 @@ import random
     pointget_acc : int
         służy do wywoływania funkcji pointget, domyślnie powinna zostać przeniesiona jako zmienna okna 1_player_mode
         lub jakkolwiek będzie się nazywać
+    game_highscores_file 
+        Odzwierciedla plik tekstowy, w którym są zapisywane najlepsze wyniki gracza
 """
 FPS = 60
 src_width = 800
@@ -409,6 +411,8 @@ class Numbers(pygame.sprite.Sprite):
             :type self.image: image.pyi
             :ivar self.rect: Prostokąt do wyświetlania cyfry
             :type self.rect: pygame.Surface
+            :ivar self.center: Przechowuje dane o środku grafiki
+            :type self.center: (int, int)
 
     """
 
@@ -689,7 +693,14 @@ def move_sprite_to(sprite, destination, speed):
         return True
 
 
-# TODO : MARCELI SKOMENTUJ
+"""Funkcja służąca do wyświetlania liczby (w domyśle punktów)
+    Przyjmuje pozycje cyfr jedności, dziesiątek, setek, w zależności od potrzeb
+    oraz zmienną którą ma wyświetlać, gdzie
+    ones_position -> (int,int)
+    tens_position -> (int,int)
+    hundrets_position -> (int, int)
+    score -> int
+    """
 
 
 def show_number(ones_position, tens_position, hundreds_position, score):
@@ -804,6 +815,9 @@ def start_1_player_mode(**info):
             pygame.display.flip()
             time_clock.tick(FPS)
 
+"""Funkcja sprawdzająca kolizje trzmiela z przeszkodami
+funckja w celu sprawdzania kolizji wykorzystuje środek trzmiela, z tego względu granice mają postać taką a nie inną ;)
+"""
 
 def check_collision(trzmiel, obstacle):
     obstacle_borders = (
@@ -872,6 +886,7 @@ class HighscoresList:
     :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
     :ivar self.best_ten: Lista przechowująca 10 najlepszych wyników
     :type self.best_ten: List[integer]
+    Klasa przyjmuje za self.game_highscores zmienną globalną game_highscores
     """
 
     def __init__(self, game_highscores):
