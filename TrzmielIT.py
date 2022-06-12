@@ -935,7 +935,7 @@ class Highscores_list:
         with open (game_highscores,'r') as f:
             self.best_ten = []
             for i, line in enumerate(f):
-                for i in range(10):
+                if i in range(10):
                     if line != 0:
                         self.best_ten.append(int(line.strip()))
                     else:
