@@ -35,6 +35,8 @@ import random
     pointget_acc : int
         służy do wywoływania funkcji pointget, domyślnie powinna zostać przeniesiona jako zmienna okna 1_player_mode
         lub jakkolwiek będzie się nazywać
+    game_highscores_file 
+        Odzwierciedla plik tekstowy, w którym są zapisywane najlepsze wyniki gracza
 """
 FPS = 60
 src_width = 800
@@ -52,7 +54,11 @@ pointget_acc = 0
 inactive_bool = False
 game_highscores_file = open(r"data/highscores.txt", 'r+')
 HIGHSCORE = None
-gap = 147
+gap = 98
+PROGRAM_RUNNING = True
+START_WINDOW = True
+RESTART_1_PLAYER = False
+RETURN_TO_MENU = False
 
 """
     Adresy obrazków i dźwięków
@@ -103,8 +109,8 @@ settings_speaker_image = 'images/settings/speaker.png'
 settings_note_image = 'images/settings/note.png'
 
 results_background_image = 'images/results/background_with_text.png'
-results_menu_image = 'images/game/powrot_do_menu.png'
-results_play_again_image = 'images/game/zagraj_ponownie.png'
+results_return_image = 'images/results/POWROT.png'
+results_restart_image = 'images/results/RESTART.png'
 """
     Pozycje obrazków
     ----------------
@@ -139,8 +145,8 @@ highscore_ones_position = (432, 315)
 score_hundreds_position = (362, 225)
 score_tens_position = (397, 225)
 score_ones_position = (432, 225)
-results_menu_position = (400,400)
-results_play_again_position = (400,355)
+results_return_position = (300, 380)
+results_restart_position = (490, 380)
 
 """
     Rozmiary obrazków : Tuple[int, int]
@@ -157,8 +163,8 @@ settings_note_size = (100, 100)
 inactive_button_size = (260, 120)
 number_size = (30, 38)
 counter_background_size = (150, 85)
-results_menu_size = (242,44)
-results_play_again_size = (242,44)
+results_return_size = (150, 45)
+results_restart_size = (150, 45)
 
 """
     Nr kanałów dla poszczególnych dźwięków
@@ -367,6 +373,16 @@ def toggle_sounds():
         pygame.mixer.Channel(start_click_sound_channel).set_volume(0.0)
 
 
+def restart_1_player():
+    global RESTART_1_PLAYER
+    RESTART_1_PLAYER = True
+
+
+def return_to_menu():
+    global RETURN_TO_MENU
+    RETURN_TO_MENU = True
+
+
 def check_if_clicked(mouse_pos: Tuple[int, int], bounds: Tuple[int, int, int, int]) -> bool:
     """
     :function check_if_clicked: Funkcja sprawdzająca czy współrzędne myszki znajdują się w ramach podanych krawędzi
@@ -392,18 +408,10 @@ def settings_window():
 
 
 def results_window():
-    button_menu = ButtonSprite(game_images['results_menu'], results_menu_position)
-    button_play_again = ButtonSprite(game_images['results_play_again'], results_play_again_position)
-    b_menu = pygame.sprite.Group(button_menu)
-    b_play_again = pygame.sprite.Group(button_play_again)
     display_screen_window.blit(game_images['results_background'], results_background_position)
     HIGHSCORE.update(SCORE)
     show_number(highscore_ones_position, highscore_tens_position, highscore_hundreds_position, HIGHSCORE.read()[0])
     show_number(score_ones_position, score_tens_position, score_hundreds_position, SCORE)
-    button_menu.update()
-    button_play_again.update()
-    b_menu.draw(display_screen_window)
-    b_play_again.draw(display_screen_window)
 
 
 class Numbers(pygame.sprite.Sprite):
@@ -417,6 +425,9 @@ class Numbers(pygame.sprite.Sprite):
             :type self.image: image.pyi
             :ivar self.rect: Prostokąt do wyświetlania cyfry
             :type self.rect: pygame.Surface
+            :ivar self.center: Przechowuje dane o środku grafiki
+            :type self.center: (int, int)
+
     """
 
     def __init__(self, center, images):
@@ -696,7 +707,14 @@ def move_sprite_to(sprite, destination, speed):
         return True
 
 
-
+"""Funkcja służąca do wyświetlania liczby (w domyśle punktów)
+    Przyjmuje pozycje cyfr jedności, dziesiątek, setek, w zależności od potrzeb
+    oraz zmienną którą ma wyświetlać, gdzie
+    ones_position -> (int,int)
+    tens_position -> (int,int)
+    hundrets_position -> (int, int)
+    score -> int
+    """
 
 
 def show_number(ones_position, tens_position, hundreds_position, score):
@@ -717,16 +735,6 @@ def show_number(ones_position, tens_position, hundreds_position, score):
     if score > 99:
         group_hundreds.update(score)
         group_hundreds.draw(display_screen_window)
-
-
-def menu():
-    pass
-
-
-def play_again():
-    pass
-
-
 
 
 def start_1_player_mode(**info):
@@ -752,18 +760,23 @@ def start_1_player_mode(**info):
         for obst in range(3):
             new_obst = Obstacle([1000 + obst * 400, random.randrange(80, 520)], "images/game/rura.png")
             obstacle_group.add(new_obst)
-        """Przyciski w oknie wyniku"""
-        button_menu = ButtonSprite(game_images['results_menu'], results_menu_position)
-        button_play_again = ButtonSprite(game_images['results_play_again'], results_play_again_position)
 
         """ move_trzmiel przybiera wartość True kiedy ma zacząć się ruszać """
         move_trzmiel = False
         """ start_game przybiera wartość True gdy rozpoczęto grę"""
         start_game = False
-        """Wielkość szczeliny"""
-        gap = 147
+
+        if not info['trzmiel']:
+            info['trzmiel'] = TrzmielSprite(start_trzmiel_position, game_images['trzmiel'])
         """ grupa trzmiela """
         trzmiel_group = pygame.sprite.Group(info['trzmiel'])
+
+        """ Przyciski """
+        button_return = ButtonSprite(game_images['results_return'], results_return_position)
+        button_return.set_on_click(return_to_menu)
+        button_restart = ButtonSprite(game_images['results_restart'], results_restart_position)
+        button_restart.set_on_click(restart_1_player)
+        buttons_group = pygame.sprite.Group(button_restart, button_return)
         while True:
             global SCORE, click
             """ naciśnięte klawisze """
@@ -803,14 +816,17 @@ def start_1_player_mode(**info):
             """ sprawdzanie wyniku oraz odpowienie wyświetlanie """
             display_screen_window.blit(game_images['counter_background'], counter_background_positions)
             show_number(counter_ones_position, counter_tens_position, counter_hundreds_position, SCORE)
+
             if open_results:
                 results_window()
-                button_menu.set_on_click(menu)
-                button_play_again.set_on_click(play_again)
+                buttons_group.update()
+                buttons_group.draw(display_screen_window)
 
             """Kolizja"""
             obstacle = pygame.sprite.spritecollideany(info['trzmiel'], obstacle_group, check_collision)
             if obstacle:
+                if move_trzmiel:
+                    pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["hit_sound"])
                 move_trzmiel = False
                 info['trzmiel'].collision = True
 
@@ -818,12 +834,20 @@ def start_1_player_mode(**info):
             pygame.display.flip()
             time_clock.tick(FPS)
 
+            if RESTART_1_PLAYER or RETURN_TO_MENU:
+                return acc, main_screen_motion
+
+
+"""Funkcja sprawdzająca kolizje trzmiela z przeszkodami
+funckja w celu sprawdzania kolizji wykorzystuje środek trzmiela, z tego względu granice mają postać taką a nie inną ;)
+"""
+
 
 def check_collision(trzmiel, obstacle):
     obstacle_borders = (
         obstacle.rect.centerx - obstacle.image.get_width() / 2, obstacle.rect.centerx + obstacle.image.get_width() / 2)
     return obstacle_borders[0] < trzmiel.rect.centerx + trzmiel.image.get_width() / 2 < obstacle_borders[1] and abs(
-        trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2 + trzmiel_size[1] / 2
+        trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2
 
 
 class Obstacle(pygame.sprite.Sprite):
@@ -886,6 +910,7 @@ class HighscoresList:
     :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
     :ivar self.best_ten: Lista przechowująca 10 najlepszych wyników
     :type self.best_ten: List[integer]
+    Klasa przyjmuje za self.game_highscores zmienną globalną game_highscores
     """
 
     def __init__(self, game_highscores):
@@ -968,9 +993,6 @@ def start_window():
     buttons = pygame.sprite.Group(button_1_player, button_2_player, title_animation)
     group_button_settings = pygame.sprite.Group(button_settings)
     buttons_settings = pygame.sprite.Group(button_music, button_sound)
-    """ Rozpoczęcie grania muzyczki w nieskończonej pętli """
-    pygame.mixer.Channel(start_music_channel).play(game_sounds["start_music"], -1)
-    pygame.mixer.Channel(start_music_channel).set_volume(0.2)
     """ akumulator wykorzystywany w animacji tła, oraz zmienna wyrażająca szybkość poruszania się tła"""
     acc = 0.0
     main_screen_motion = 1
@@ -1073,10 +1095,10 @@ if __name__ == "__main__":
     game_images['counter_background'] = pygame.transform.scale(
         pygame.image.load(counter_background).convert_alpha(), counter_background_size)
     game_images['results_background'] = pygame.image.load(results_background_image).convert_alpha()
-    game_images['results_play_again'] = pygame.transform.scale(
-        pygame.image.load(results_play_again_image).convert_alpha(), results_play_again_size)
-    game_images['results_menu'] = pygame.transform.scale(
-        pygame.image.load(results_menu_image).convert_alpha(), results_menu_size)
+    game_images['results_return'] = pygame.transform.smoothscale(
+        pygame.image.load(results_return_image).convert_alpha(), results_return_size)
+    game_images['results_restart'] = pygame.transform.smoothscale(
+        pygame.image.load(results_restart_image).convert_alpha(), results_restart_size)
 
     """ Przypisanie dźwięków do game_sounds na podstawie ich ścieżek """
     game_sounds["start_music"] = pygame.mixer.Sound(start_music)
@@ -1091,13 +1113,35 @@ if __name__ == "__main__":
 
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
+    """ Rozpoczęcie grania muzyczki w nieskończonej pętli """
+    pygame.mixer.Channel(start_music_channel).play(game_sounds["start_music"], -1)
+    pygame.mixer.Channel(start_music_channel).set_volume(0.2)
 
-    """ Okno startowe """
-    acc, main_screen_motion, trzmiel = start_window()
+    acc = 0.0
+    main_screen_motion = 0.0
+    while PROGRAM_RUNNING:
+        trzmiel = None
+        if START_WINDOW:
+            """ Okno startowe """
+            acc, main_screen_motion, trzmiel = start_window()
 
-    """ Gra jednoosobowa """
-    if one_player_mode:
-        start_1_player_mode(acc=acc, main_screen_motion=main_screen_motion, trzmiel=trzmiel)
+        """ Gra jednoosobowa """
+        if one_player_mode:
+            acc, main_screen_motion = start_1_player_mode(acc=acc, main_screen_motion=main_screen_motion,
+                                                          trzmiel=trzmiel)
+        if RETURN_TO_MENU:
+            START_WINDOW = True
+            one_player_mode = False
+        elif RESTART_1_PLAYER:
+            START_WINDOW = False
+            one_player_mode = True
+
+        open_results = False
+        start_disappear = False
+        SCORE = 0
+        pointget_acc = 0
+        RETURN_TO_MENU = False
+        RESTART_1_PLAYER = False
 
 """
  :game_highscores: Obiekt typu file odczytujący plik txt z wynikami
