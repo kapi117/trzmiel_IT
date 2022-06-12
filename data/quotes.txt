@@ -1,12 +1,12 @@
 „Poprzedni minister finansów zapewniał, że już niedługo wszyscy będziemy zarabiali powyżej średniej.”
-„Dodawanie kombinacji liniowej kolumn przy rozwiązywaniu układu równań liniowych jest jak dodawanie kartofli do spirytusu.”
+„Dodawanie kombinacji liniowej kolumn przy rozwiązywaniu układu równań jest jak dodawanie kartofli do spirytusu.”
 „Kto nie ryzykuje, ten dzieci nie ma”
 „Przerwany jest niezdrowy”
 „Jak wszyscy to babcia też”
 „Nie wiem, nie znam się, zarobiony jestem”
 „Najważniejsza jest pierwsza ćwiartka, a potem to już leci”
 „Co to jest nic? Niektórzy mówią że połówka na głowę”
-„Tutaj będzie całka po „dr” ale jak ktoś nie wymawia „r” to może być po „dl” ”
+„Tutaj będzie całka po 'dr' ale jak ktoś nie wymawia 'r' to może być po 'dl'”
 „Na drzewku to się można co najwyżej powiesić”
 „Różnica między granicą, a granicą niewłaściwą jest taka jak między demokracją, a demokracją socjalistyczną”
 „Różnica pomiędzy granicą, a granicą niewłaściwą jest taka jak między krzesłem, a krzesłem elektrycznym”
@@ -14,15 +14,16 @@
 „Cosinus to jest śmieć!”
 „Należy przyjąć takie generalne założenie, że to co robimy ma sens”
 „Ta całka jest tak ważna..tak ważna, że hej!”
-„Co mogę zrobić z szeregiem liczbowym? Niiic, siąść i płakać"
+„Co mogę zrobić z szeregiem liczbowym? Niiic, siąść i płakać”
 „Nie będę podawał bardziej abstrakcyjnych przykładów, żeby nie przeabstracholować”
-„Rozrasta się ten wzór jak nowotwór za przeproszeniem"
+„Rozrasta się ten wzór jak nowotwór za przeproszeniem”
 „Tutaj będzie element neutralny, a tu wyjdzie C, B, A… Hmm CBA, to niedobrze, to na drugi raz zmienimy litery”
-„Twierdzenie o trzech ciągach. Innymi słowy jeżeli dwóch funkcjonariuszy idzie na komisariat to ten którego prowadzą też trafi na komisariat"
+„Jeżeli dwóch funkcjonariuszy idzie na komisariat to ten którego prowadzą też trafi na komisariat”
 „Tutaj jest całka bez całkowania…jak Bruce Lee w wejściu smoka, walka bez walki”
 „Lepiej coś innego obalić niż twierdzenie”
-„Egzamin jest zdalnie, więc nie jestem w stanie sprawdzić, czy macie notatki, czy nie. To można mieć jakieś tam notatki”
-„(…) 95-procentowy - czyli mocny jak spirytus - przedział ufności.”
+„Egzamin jest zdalnie, więc nie jestem w stanie sprawdzić, czy macie notatki. To można mieć jakieś tam notatki”
+„(…) 95 procentowy czyli mocny jak spirytus przedział ufności.”
 „Całkowanie przez części jest czasami jak powiedzenie zamienił stryjek siekierkę na kijek”
 „To zadanie jest nieprzyzwoicie banalne”
-„Dla grabarza nieboszczyk to sukces, dla rodziny niekoniecznie"
+„Dla grabarza nieboszczyk to sukces, dla rodziny niekoniecznie”
+„Probabilistyka to mój konik”

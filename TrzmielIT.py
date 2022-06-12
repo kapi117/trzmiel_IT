@@ -100,6 +100,7 @@ on_hover_sound = 'sounds/on_hover.wav'
 jumping_sound = 'sounds/jump.wav'
 hit_sound = 'sounds/hit.wav'
 point_get_sound = 'sounds/pointget.wav'
+results_sound = 'sounds/results_sound.wav'
 
 settings_background_image = 'images/settings/settings.background.png'
 settings_title_image = 'images/settings/settings.title.png'
@@ -111,6 +112,17 @@ settings_note_image = 'images/settings/note.png'
 results_background_image = 'images/results/background_with_text.png'
 results_return_image = 'images/results/POWROT.png'
 results_restart_image = 'images/results/RESTART.png'
+""" Tworzenie cytatu jako obrazka """
+quotes = open("data/quotes.txt", encoding="utf-8")
+trzmiel_quotes = quotes.read()
+trzmiel_quotes_table = trzmiel_quotes.split('\n')
+pygame.font.init()
+quote_index = random.randint(0,len(trzmiel_quotes_table))-1
+quote_text = trzmiel_quotes_table[quote_index]
+Font = pygame.font.SysFont("OCR-A BT" , 20)
+Font.set_bold(False)
+Font.set_italic(True)
+quote_image = pygame.font.Font.render(Font, quote_text, False, [255, 241, 150])
 """
     Pozycje obrazków
     ----------------
@@ -147,6 +159,7 @@ score_tens_position = (397, 225)
 score_ones_position = (432, 225)
 results_return_position = (300, 380)
 results_restart_position = (490, 380)
+quote_positions = (400, 220)
 
 """
     Rozmiary obrazków : Tuple[int, int]
@@ -173,6 +186,7 @@ start_music_channel = 0
 start_click_sound_channel = 1
 jumping_sound_channel = 2
 point_get_sound_channel = 3
+results_sound_channel = 4
 
 """ game_images : Dict[string, image.pyi]
         Słownik przechowujący obrazki
@@ -777,6 +791,7 @@ def start_1_player_mode(**info):
         button_restart = ButtonSprite(game_images['results_restart'], results_restart_position)
         button_restart.set_on_click(restart_1_player)
         buttons_group = pygame.sprite.Group(button_restart, button_return)
+        played_results_sound = False
         while True:
             global SCORE, click
             """ naciśnięte klawisze """
@@ -818,6 +833,10 @@ def start_1_player_mode(**info):
             show_number(counter_ones_position, counter_tens_position, counter_hundreds_position, SCORE)
 
             if open_results:
+                if not played_results_sound:
+                    pygame.mixer.Channel(results_sound_channel).play(game_sounds["results_sound"])
+                    pygame.mixer.Channel(results_sound_channel).set_volume(0.2)
+                    played_results_sound = True
                 results_window()
                 buttons_group.update()
                 buttons_group.draw(display_screen_window)
@@ -956,7 +975,6 @@ def inactive():
     global inactive_bool
     inactive_bool = True
 
-
 def start_window():
     """
     :function start_window: Funkcja odpowiedzialna za działanie okna startowego
@@ -989,7 +1007,11 @@ def start_window():
     """ Utworzenie animacji tytułu """
     title_animation = AnimateSprite(animation_title_position,
                                     pygame.image.load(start_title_image), 40)
+    quote_animation = AnimateSprite(quote_positions, game_images['quote'], 40)
+    quote_group = pygame.sprite.Group(quote_animation)
     all_sprites.append(title_animation)
+    all_sprites.append(quote_animation)
+
     buttons = pygame.sprite.Group(button_1_player, button_2_player, title_animation)
     group_button_settings = pygame.sprite.Group(button_settings)
     buttons_settings = pygame.sprite.Group(button_music, button_sound)
@@ -1005,6 +1027,7 @@ def start_window():
         click = False
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                quotes.close()
                 pygame.quit()
                 sys.exit()
             elif event.type == MOUSEBUTTONUP:
@@ -1020,6 +1043,8 @@ def start_window():
         """ update() przyciski oraz wyrysowanie ich na ekran """
         group_button_settings.update()
         group_button_settings.draw(display_screen_window)
+        quote_group.update()
+        quote_group.draw(display_screen_window)
         buttons.draw(display_screen_window)
         trzmiel_group.update(keys)
         trzmiel_group.draw(display_screen_window)
@@ -1095,6 +1120,7 @@ if __name__ == "__main__":
     game_images['counter_background'] = pygame.transform.scale(
         pygame.image.load(counter_background).convert_alpha(), counter_background_size)
     game_images['results_background'] = pygame.image.load(results_background_image).convert_alpha()
+    game_images['quote'] = quote_image.convert_alpha()
     game_images['results_return'] = pygame.transform.smoothscale(
         pygame.image.load(results_return_image).convert_alpha(), results_return_size)
     game_images['results_restart'] = pygame.transform.smoothscale(
@@ -1107,6 +1133,7 @@ if __name__ == "__main__":
     game_sounds["jumping_sound"] = pygame.mixer.Sound(jumping_sound)
     game_sounds["point_get_sound"] = pygame.mixer.Sound(point_get_sound)
     game_sounds["hit_sound"] = pygame.mixer.Sound(hit_sound)
+    game_sounds["results_sound"] = pygame.mixer.Sound(results_sound)
 
     """Wczytanie najwiekszego wyniku z pliku"""
     HIGHSCORE = HighscoresList(game_highscores_file)
