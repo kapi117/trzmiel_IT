@@ -460,30 +460,26 @@ if __name__ == "__main__":
 """
  :game_highscores: Obiekt typu file odczytujący plik txt z wynikami
 """
-game_highscores = open(r"data/highscores.txt", 'r+')
+game_highscores =r"data/highscores.txt"
 
 """Klasa umożliwiająca zapisywanie i wyświetlanie 10 najlepszych wyników"""
-# TODO : (1) usuć kod poniżej
-# TODO : (2) przemyśl swoje zachowanie
-# TODO : (3) napisz kod ponownie
-# TODO : (4) wróć do punktu pierwszego ;)
-class Highscores_list(): # TODO : NA CHUJ TEN NAWIAS
+
+class Highscores_list:
     """
     :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
     :ivar self.best_ten: Lista przechowująca 10 najlepszych wyników
     :type self.best_ten: List[integer]
     """
 
-    def __init__(self, list, game_highscores): # ej po chuj ten list???
-        self.best_ten = []
-        ten_lines = [0,1,2,3,4,5,6,7,8,9] # KURWA CO TAM SIĘ DZIEJE W TEJ LIŚCIE
-        # KURWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        for i, line in enumerate(game_highscores):
-            if i in ten_lines:
-                if line != 0:
-                    self.best_ten.append(line.strip())
-            elif i > 9:
-                break
+    def __init__(self, game_highscores):
+        with open (game_highscores,'r+') as f:
+            self.best_ten = []
+            for i, line in enumerate(f):
+                for i in range(10):
+                    if line != 0:
+                        self.best_ten.append(line.strip())
+                    else:
+                        break
 
     def update(self,new_score):
         """
@@ -491,12 +487,21 @@ class Highscores_list(): # TODO : NA CHUJ TEN NAWIAS
         :param new_score: Nowy osiągnięty wynik
         :type new_score: integer
         """
-        # ej, bo co jak gram pierwszy raz ://////////
-        for i,elem in self.best_ten: # JA JESTEM LISTĄ I WEŹ MNIE TU NIE WKURWIAJ, PO CZYM TY CHCESZ ITEROWAĆ ZŁAMASIE
-            if new_score > elem:
-                lower_scores=[x for x in self.best_ten[i:8]]
+
+        for i in range(10):
+            if new_score > self.best_ten[i]:
+                lower_scores = [x for x in self.best_ten[i:8]]
                 self.best_ten[i] = new_score
                 self.best_ten += lower_scores
+                break
+
+        with open(game_highscores, 'r+') as f:
+            f.truncate(0)
+            for i in range(10):
+                f.write(self.best_ten[i])
+                f.write("/n")
+
+
 
     def read(self):
         """
@@ -510,23 +515,5 @@ class Highscores_list(): # TODO : NA CHUJ TEN NAWIAS
         :function reset: Wymazanie zawartości pliku z wynikami
         """
         game_highscores.truncate(0)
-# TODO : EJ TAK NA POWAŻNIE TO TEGO NIŻEJ NIE USUWAJ BO KOD WYJEBIE
-# todo PS. JESTEM CAŁKOWICIE POWAŻNY
-# todo Przemysław Pukocz
-# class Obstacle(pygame.sprite.Sprite):
-#     def __init__(self, pos ,picture_path):
-#         super().__init__()
-#         self.pos = pos
-#         self.image = pygame.image.load(picture_path)
-#         self.rect = self.image.get_rect(center=self.pos)
-#
-#     """funkcja update powoduje pomniejszenie położenia x przeszkody o 10 pikseli zgodnie z zegarem"""
-#     """ adres rury został dodany jako :game_obstacle_image: string  """
-#     def update(self):
-#         center = self.rect.center
-#         self.rect = self.image.get_rect(center=(center[0]-5, center[1]))
-#         """poniższy if zapewnia przenoszenie przeszkód spowrotem na początek po osiągnięciu odległości -200 x"""
-#         if center[0] == -200:
-#             """ reset położenia x-owego przeszkody musi sie odbywać za pomocą wartości liczbowej, ponieważ przywrócenie
-#              oryginalnej wartości powoduje konflikty ze sposobem tworzenia grupy obiektów"""
-#             self.rect = self.image.get_rect(center=(1000, random.randrange(60,540)))
+
+# Coś kurwa mało śmieszny ten błazenek
