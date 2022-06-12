@@ -497,13 +497,11 @@ class Highscores_list:
                 self.best_ten += lower_scores
                 break
 
-        with open(game_highscores, 'r+') as f:
+        with open(game_highscores, 'w') as f:
             f.truncate(0)
             for i in range(10):
                 f.write(self.best_ten[i])
                 f.write("/n")
-
-
 
     def read(self):
         """
@@ -511,11 +509,8 @@ class Highscores_list:
         """
         return self.best_ten
 
-
     def reset(self):
         """
         :function reset: Wymazanie zawartości pliku z wynikami
         """
         game_highscores.truncate(0)
-
-# Coś kurwa mało śmieszny ten błazenek
