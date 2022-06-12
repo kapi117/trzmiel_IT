@@ -423,7 +423,6 @@ def settings_window():
 
 def results_window():
     display_screen_window.blit(game_images['results_background'], results_background_position)
-    HIGHSCORE.update(SCORE)
     show_number(highscore_ones_position, highscore_tens_position, highscore_hundreds_position, HIGHSCORE.read()[0])
     show_number(score_ones_position, score_tens_position, score_hundreds_position, SCORE)
 
@@ -837,6 +836,7 @@ def start_1_player_mode(**info):
                     pygame.mixer.Channel(results_sound_channel).play(game_sounds["results_sound"])
                     pygame.mixer.Channel(results_sound_channel).set_volume(0.2)
                     played_results_sound = True
+                    HIGHSCORE.update(SCORE)
                 results_window()
                 buttons_group.update()
                 buttons_group.draw(display_screen_window)
@@ -937,7 +937,7 @@ class Highscores_list:
             for i, line in enumerate(f):
                 for i in range(10):
                     if line != 0:
-                        self.best_ten.append(line.strip())
+                        self.best_ten.append(int(line.strip()))
                     else:
                         f.close()
                         break
@@ -952,8 +952,8 @@ class Highscores_list:
         if not self.best_ten:
             self.best_ten.append(new_score)
 
-        for i in range(10):
-            if new_score > self.best_ten[i]:
+        for i,elem in enumerate(self.best_ten):
+            if new_score > elem:
                 lower_scores = [x for x in self.best_ten[i:8]]
                 self.best_ten[i] = new_score
                 self.best_ten += lower_scores
@@ -961,9 +961,9 @@ class Highscores_list:
 
         with open(game_highscores, 'w') as f:
             f.truncate(0)
-            for i in range(10):
-                f.write(self.best_ten[i])
-                f.write("/n")
+            for i in self.best_ten:
+                f.write(str(i))
+                f.write("\n")
 
 
     def read(self):
@@ -1139,7 +1139,7 @@ if __name__ == "__main__":
     game_sounds["results_sound"] = pygame.mixer.Sound(results_sound)
 
     """Wczytanie najwiekszego wyniku z pliku"""
-    HIGHSCORE = HighscoresList(game_highscores_file)
+    HIGHSCORE = Highscores_list(game_highscores)
 
     """ Zmiana ikony programu """
     pygame.display.set_icon(game_images['icon'])
