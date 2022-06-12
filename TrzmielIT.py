@@ -52,7 +52,7 @@ pointget_acc = 0
 inactive_bool = False
 game_highscores_file = open(r"data/highscores.txt", 'r+')
 HIGHSCORE = None
-gap = 147
+gap = 98
 
 """
     Adresy obrazków i dźwięków
@@ -809,7 +809,7 @@ def check_collision(trzmiel, obstacle):
     obstacle_borders = (
         obstacle.rect.centerx - obstacle.image.get_width() / 2, obstacle.rect.centerx + obstacle.image.get_width() / 2)
     return obstacle_borders[0] < trzmiel.rect.centerx + trzmiel.image.get_width() / 2 < obstacle_borders[1] and abs(
-        trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2 + trzmiel_size[1] / 2
+        trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2
 
 
 class Obstacle(pygame.sprite.Sprite):
