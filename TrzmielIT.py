@@ -815,6 +815,9 @@ def start_1_player_mode(**info):
             pygame.display.flip()
             time_clock.tick(FPS)
 
+"""Funkcja sprawdzająca kolizje trzmiela z przeszkodami
+funckja w celu sprawdzania kolizji wykorzystuje środek trzmiela, z tego względu granice mają postać taką a nie inną ;)
+"""
 
 def check_collision(trzmiel, obstacle):
     obstacle_borders = (
