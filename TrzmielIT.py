@@ -479,7 +479,9 @@ class Highscores_list:
                     if line != 0:
                         self.best_ten.append(line.strip())
                     else:
+                        f.close()
                         break
+            f.close()
 
     def update(self,new_score):
         """
@@ -502,6 +504,7 @@ class Highscores_list:
             for i in range(10):
                 f.write(self.best_ten[i])
                 f.write("/n")
+
 
     def read(self):
         """
