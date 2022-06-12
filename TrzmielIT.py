@@ -35,6 +35,8 @@ import random
     pointget_acc : int
         służy do wywoływania funkcji pointget, domyślnie powinna zostać przeniesiona jako zmienna okna 1_player_mode
         lub jakkolwiek będzie się nazywać
+    game_highscores_file 
+        Odzwierciedla plik tekstowy, w którym są zapisywane najlepsze wyniki gracza
 """
 FPS = 60
 src_width = 800
@@ -872,6 +874,7 @@ class HighscoresList:
     :class Highscores_list: Klasa nadpisująca i wyświetlająca 10 najlepszych wyników
     :ivar self.best_ten: Lista przechowująca 10 najlepszych wyników
     :type self.best_ten: List[integer]
+    Klasa przyjmuje za self.game_highscores zmienną globalną game_highscores
     """
 
     def __init__(self, game_highscores):
