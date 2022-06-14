@@ -1005,6 +1005,7 @@ def start_window():
     button_music.set_on_click(toggle_music)
     button_sound.set_on_click(toggle_sounds)
     button_1_player.set_on_click(start_1_player_mode)
+    button_2_player.set_on_click(inactive)
 
     """ Utworzenie trzmiela """
     trzmiel = TrzmielSprite(start_trzmiel_position, game_images['trzmiel'])
