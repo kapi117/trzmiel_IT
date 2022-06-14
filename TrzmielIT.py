@@ -117,9 +117,9 @@ quotes = open("data/quotes.txt", encoding="utf-8")
 trzmiel_quotes = quotes.read()
 trzmiel_quotes_table = trzmiel_quotes.split('\n')
 pygame.font.init()
-quote_index = random.randint(0,len(trzmiel_quotes_table))-1
+quote_index = random.randint(0, len(trzmiel_quotes_table)) - 1
 quote_text = trzmiel_quotes_table[quote_index]
-Font = pygame.font.SysFont("OCR-A BT" , 20)
+Font = pygame.font.SysFont("OCR-A BT", 20)
 Font.set_bold(False)
 Font.set_italic(True)
 quote_image = pygame.font.Font.render(Font, quote_text, False, [255, 241, 150])
@@ -383,8 +383,14 @@ def toggle_sounds():
     sounds_on = not sounds_on
     if sounds_on:
         pygame.mixer.Channel(start_click_sound_channel).set_volume(1.0)
+        pygame.mixer.Channel(jumping_sound_channel).set_volume(0.2)
+        pygame.mixer.Channel(point_get_sound_channel).set_volume(0.5)
+        pygame.mixer.Channel(results_sound_channel).set_volume(0.2)
     else:
         pygame.mixer.Channel(start_click_sound_channel).set_volume(0.0)
+        pygame.mixer.Channel(jumping_sound_channel).set_volume(0.0)
+        pygame.mixer.Channel(point_get_sound_channel).set_volume(0.0)
+        pygame.mixer.Channel(results_sound_channel).set_volume(0.0)
 
 
 def restart_1_player():
@@ -612,7 +618,6 @@ class TrzmielSprite(pygame.sprite.Sprite):
                 self.y_velocity = 0
                 self.y_velocity -= 15
                 pygame.mixer.Channel(jumping_sound_channel).play(game_sounds["jumping_sound"])
-                pygame.mixer.Channel(jumping_sound_channel).set_volume(0.2)
                 self.if_jumped = True
             elif not (keys[pygame.K_SPACE] or keys[pygame.K_UP]):
                 self.if_jumped = False
@@ -834,7 +839,6 @@ def start_1_player_mode(**info):
             if open_results:
                 if not played_results_sound:
                     pygame.mixer.Channel(results_sound_channel).play(game_sounds["results_sound"])
-                    pygame.mixer.Channel(results_sound_channel).set_volume(0.2)
                     played_results_sound = True
                     HIGHSCORE.update(SCORE)
                 results_window()
@@ -865,7 +869,8 @@ funckja w celu sprawdzania kolizji wykorzystuje środek trzmiela, z tego względ
 def check_collision(trzmiel, obstacle):
     obstacle_borders = (
         obstacle.rect.centerx - obstacle.image.get_width() / 2, obstacle.rect.centerx + obstacle.image.get_width() / 2)
-    return (obstacle_borders[0] < trzmiel.rect.centerx + trzmiel.image.get_width() / 2) and (trzmiel.rect.centerx - trzmiel.image.get_width() / 2 < obstacle_borders[1]) and abs(
+    return (obstacle_borders[0] < trzmiel.rect.centerx + trzmiel.image.get_width() / 2) and (
+                trzmiel.rect.centerx - trzmiel.image.get_width() / 2 < obstacle_borders[1]) and abs(
         trzmiel.rect.center[1] - obstacle.rect.center[1]) > gap / 2
 
 
@@ -917,7 +922,6 @@ def pointget(obst, trzmiel: TrzmielSprite):
         if pointget_acc >= 12:
             SCORE += 1
             pointget_acc = 0
-            pygame.mixer.Channel(point_get_sound_channel).set_volume(0.5)
             pygame.mixer.Channel(point_get_sound_channel).play(game_sounds["point_get_sound"])
 
 
@@ -932,7 +936,7 @@ class Highscores_list:
     """
 
     def __init__(self, game_highscores):
-        with open (game_highscores,'r') as f:
+        with open(game_highscores, 'r') as f:
             self.best_ten = []
             for i, line in enumerate(f):
                 if i in range(10):
@@ -943,7 +947,7 @@ class Highscores_list:
                         break
             f.close()
 
-    def update(self,new_score):
+    def update(self, new_score):
         """
         :function update: Sprawdza czy nowy wynik nie jest wyższy od któregoś z najlepszych i jeśli tak to go wpisuje
         :param new_score: Nowy osiągnięty wynik
@@ -952,7 +956,7 @@ class Highscores_list:
         if not self.best_ten:
             self.best_ten.append(new_score)
 
-        for i,elem in enumerate(self.best_ten):
+        for i, elem in enumerate(self.best_ten):
             if new_score > elem:
                 lower_scores = [x for x in self.best_ten[i:8]]
                 self.best_ten[i] = new_score
@@ -965,7 +969,6 @@ class Highscores_list:
                 f.write(str(i))
                 f.write("\n")
 
-
     def read(self):
         """
         :function read: Odczyt 10 najlepszych wyników
@@ -973,10 +976,10 @@ class Highscores_list:
         return self.best_ten
 
 
-
 def inactive():
     global inactive_bool
     inactive_bool = True
+
 
 def start_window():
     """
