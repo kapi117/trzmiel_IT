@@ -848,6 +848,8 @@ def start_1_player_mode(**info):
                 results_window()
                 buttons_group.update()
                 buttons_group.draw(display_screen_window)
+                if keys[K_UP] or keys[K_SPACE]:
+                    restart_1_player()
 
             """Kolizja"""
             obstacle = pygame.sprite.spritecollideany(info['trzmiel'], obstacle_group, check_collision)
@@ -940,15 +942,12 @@ class Highscores_list:
     """
 
     def __init__(self, game_highscores):
-        with open(game_highscores, 'w+') as f:
+        with open(game_highscores, 'r') as f:
             self.best_ten = []
             for i, line in enumerate(f):
                 if i in range(10):
                     if line != 0:
                         self.best_ten.append(int(line.strip()))
-                    else:
-                        f.close()
-                        break
             f.close()
 
     def update(self, new_score):
@@ -957,12 +956,12 @@ class Highscores_list:
         :param new_score: Nowy osiągnięty wynik
         :type new_score: integer
         """
-        if not self.best_ten:
+        if len(self.best_ten) == 0:
             self.best_ten.append(new_score)
 
         for i, elem in enumerate(self.best_ten):
             if new_score > elem:
-                lower_scores = [x for x in self.best_ten[i:8]]
+                lower_scores = self.best_ten[i:8]
                 self.best_ten[i] = new_score
                 self.best_ten += lower_scores
                 break
