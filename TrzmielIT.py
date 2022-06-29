@@ -940,7 +940,7 @@ class Highscores_list:
     """
 
     def __init__(self, game_highscores):
-        with open(game_highscores, 'r') as f:
+        with open(game_highscores, 'w+') as f:
             self.best_ten = []
             for i, line in enumerate(f):
                 if i in range(10):
