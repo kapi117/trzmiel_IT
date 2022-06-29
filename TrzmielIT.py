@@ -4,6 +4,10 @@ import pygame
 from pygame.locals import *
 import sys
 import random
+try:
+    import pyi_splash
+except:
+    print("Couludn't import pyi_splash!")
 
 """
     TrzmielIT
@@ -1089,6 +1093,10 @@ def start_window():
 
 
 if __name__ == "__main__":
+    try:
+        pyi_splash.update_text("Trzmiel się wykluwa")
+    except:
+        pass
     """ Inicjalizacja gry oraz dźwięków"""
     pygame.mixer.pre_init()
     pygame.mixer.init()
@@ -1153,6 +1161,11 @@ if __name__ == "__main__":
 
     acc = 0.0
     main_screen_motion = 0.0
+    try:
+        pyi_splash.update_text("Wykluty trzmiel!")
+        pyi_splash.close()
+    except:
+        pass
     while PROGRAM_RUNNING:
         trzmiel = None
         if START_WINDOW:
@@ -1177,6 +1190,3 @@ if __name__ == "__main__":
         RETURN_TO_MENU = False
         RESTART_1_PLAYER = False
 
-"""
- :game_highscores: Obiekt typu file odczytujący plik txt z wynikami
-"""
